@@ -1,0 +1,71 @@
+# Configuration for the GitHub README Generator
+
+# --- AI Model Settings ---
+# Specifies the OpenAI model to use for generation.
+# Examples: "gpt-3.5-turbo", "gpt-4o", "gpt-4-turbo"
+# Ensure the selected model is compatible with your OpenAI API key and access level.
+ai_model: "gpt-3.5-turbo"
+
+# Controls the creativity of the AI. Higher values (e.g., 0.8) are more creative,
+# lower values (e.g., 0.2) are more deterministic/focused.
+# Must be between 0.0 and 2.0.
+ai_temperature: 0.7
+
+# Maximum number of tokens (roughly words/sub-words) the AI can generate in its response.
+# This helps control the length and cost of the generation.
+# Different models have different maximum token limits for prompt + completion.
+ai_max_tokens: 2048
+
+
+# --- Prompt Construction Settings ---
+max_prompt_files: 15               # Max number of files to detail in the prompt
+max_content_snippet_length: 600    # Max character length for content snippets from each file
+
+# Repository Content Fetching Exclusions
+# These extend the built-in exclusions.
+# Use glob patterns (though current implementation might be direct string match - check script).
+excluded_dirs:
+  - "docs/"          # Example: exclude a documentation directory if it's not relevant for the AI
+  - "examples/"
+  - "tests/"         # Exclude test directories if they are too verbose for the prompt
+  - "test/"
+  - "data/"          # Exclude data directories
+  - "samples/"
+  # - "**/__pycache__/" # Already handled by default
+  # - "**/node_modules/" # Already handled by default
+
+excluded_files:
+  - "*.log"          # Example: exclude all log files
+  - "*.tmp"
+  - "*.swp"
+  - ".DS_Store"      # Already handled by default (but good to show example)
+  - "specific_large_data_file.csv"
+  # - "LICENSE"      # You might want toexclude this if you only want the AI to state type, not see content
+
+# README Sections Configuration
+# Defines the sections the AI will be asked to generate and their order.
+# You can add, remove, or reorder these.
+# The AI will be instructed to generate content for these headings.
+# Placeholders like "(Placeholder)" suggest areas for manual completion.
+readme_sections:
+  - "Project Title"
+  - "Description"
+  - "Badges (Placeholder for user to add)" # Example of a placeholder instruction
+  - "Table of Contents (Placeholder for AI or user to generate/add)"
+  - "Key Features"
+  - "Technologies Used"
+  - "Installation"
+  - "Usage"
+  - "Configuration (Optional)"
+  - "API Reference (Optional, if applicable)"
+  - "Testing"
+  - "Contributing"
+  - "License"
+  - "Acknowledgments (Optional)"
+  - "Contact (Optional)"
+
+# README Template File Path (For future, more advanced templating - not yet implemented)
+# readme_template_path: "path/to/your/custom_readme_template.md"
+
+# Logging Level (For future use - not yet implemented)
+# log_level: "INFO" # Options: DEBUG, INFO, WARNING, ERROR

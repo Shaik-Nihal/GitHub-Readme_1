@@ -1,0 +1,371 @@
+/* Enhanced styles for GitHub README Generator - 2025 Edition */
+
+/* Footer Styles */
+footer {
+    text-align: center;
+    padding: 1.75rem;
+    border-top: 1px solid var(--border-color);
+    color: var(--secondary-color);
+    margin-top: 3rem;
+    background-color: var(--light-bg);
+    font-size: 0.9rem;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.03);
+}
+
+footer p {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+footer i {
+    color: var(--primary-color);
+}
+
+/* README Tabs */
+.readme-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+    background-color: var(--light-bg);
+    padding: 0.25rem 0.25rem 0;
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.tab {
+    padding: 0.75rem 1.25rem;
+    background: none;
+    border: none;
+    border-radius: var(--radius) var(--radius) 0 0;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.tab:hover {
+    color: var(--dark-text);
+    background-color: rgba(0, 0, 0, 0.025);
+}
+
+.tab.active {
+    color: var(--primary-color);
+    background-color: white;
+}
+
+.tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-color);
+}
+
+.tab-content {
+    display: none;
+    padding: 0;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.readme-content {
+    position: relative;
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.source-content {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    background: white;
+    padding: 1.5rem;
+    overflow-x: auto;
+    max-height: 450px;
+    overflow-y: auto;
+}
+
+#readme-output {
+    min-height: 200px;
+    position: relative;
+}
+
+/* Button Groups */
+.button-group {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.section-regenerate {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.section-regenerate h4 {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    color: var(--dark-text);
+}
+
+.section-hint {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.section-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.btn-outline-small {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    background: white;
+    border: 1px solid var(--border-color);
+    color: var(--dark-text);
+    border-radius: var(--radius);
+    transition: all var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-outline-small:hover {
+    background: var(--hover-bg);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Error Message */
+.error {
+    background-color: #fff5f5;
+    border-left: 4px solid var(--danger-color);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: var(--radius);
+    color: #b91c1c;
+}
+
+/* Markdown Preview Styling */
+.preview-content {
+    padding: 1.5rem 2rem;
+    line-height: 1.6;
+    max-height: 450px;
+    overflow-y: auto;
+    background-color: white;
+    color: var(--dark-text);
+}
+
+.preview-content h1 {
+    font-size: 1.8rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.preview-content h2 {
+    font-size: 1.4rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    color: var(--dark-text);
+}
+
+.preview-content h3 {
+    font-size: 1.25rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.preview-content p {
+    margin-bottom: 1rem;
+}
+
+.preview-content code {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.9em;
+}
+
+.preview-content pre {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+.preview-content pre code {
+    background: none;
+    padding: 0;
+    border-radius: 0;
+}
+
+.preview-content ul, .preview-content ol {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+.preview-content li {
+    margin-bottom: 0.5rem;
+}
+
+.preview-content blockquote {
+    border-left: 4px solid var(--border-color);
+    padding-left: 1rem;
+    color: var(--secondary-color);
+    margin: 1rem 0;
+}
+
+.preview-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+}
+
+.preview-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+}
+
+.preview-content table th,
+.preview-content table td {
+    border: 1px solid var(--border-color);
+    padding: 0.5rem;
+    text-align: left;
+}
+
+.preview-content table th {
+    background: var(--light-bg);
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    padding: 1rem;
+    border-radius: var(--radius);
+    background-color: white;
+    box-shadow: var(--shadow-lg);
+    min-width: 300px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s forwards, fadeOut 0.5s forwards 3s;
+    border-left: 4px solid var(--primary-color);
+}
+
+.toast.success {
+    border-left-color: var(--success-color);
+}
+
+.toast.success i {
+    color: var(--success-color);
+}
+
+.toast.error {
+    border-left-color: var(--danger-color);
+}
+
+.toast.error i {
+    color: var(--danger-color);
+}
+
+.toast i {
+    font-size: 1.25rem;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    body {
+        padding: 1rem;
+    }
+    
+    header {
+        padding: 2rem 1rem;
+    }
+    
+    header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+    
+    .progress-container {
+        flex-direction: column;
+    }
+    
+    .progress-step {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .progress-step:not(:last-child)::after {
+        display: none;
+    }
+}

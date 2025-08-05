@@ -1,0 +1,57 @@
+# GitHub README Generator Configuration
+
+# AI Model Settings
+ai_model: "microsoft/wizardlm-2-8x22b"  # Free model on OpenRouter
+ai_temperature: 0.7
+ai_max_tokens: 4000
+
+# Repository Analysis Settings
+max_prompt_files: 20
+max_content_snippet_length: 800
+max_individual_file_size_bytes: 1500000
+
+# Excluded directories and files
+excluded_dirs:
+  - "docs/"
+  - "examples/"
+  - "tests/"
+  - "test/"
+  - "data/"
+  - "samples/"
+  - ".git/"
+  - "node_modules/"
+  - "__pycache__/"
+  - "dist/"
+  - "build/"
+  - "target/"
+  - "vendor/"
+  - ".venv/"
+  - "env/"
+
+excluded_files:
+  - "*.log"
+  - "*.tmp"
+  - "*.swp"
+  - ".DS_Store"
+  - "*.pyc"
+  - "*.pyo"
+  - "*.pyd"
+  - "*.so"
+  - "*.dll"
+
+# README sections to include
+readme_sections:
+  - "Project Title"
+  - "Description"
+  - "Key Features"
+  - "Technologies Used"
+  - "Installation"
+  - "Usage"
+  - "API Documentation"
+  - "Configuration"
+  - "Contributing"
+  - "License"
+  - "Support"
+
+# Optional: Custom README template path
+readme_template_path: null

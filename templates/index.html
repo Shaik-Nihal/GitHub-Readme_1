@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI GitHub README Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style-enhancements.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fab fa-github"></i> AI GitHub README Generator</h1>
+            <p>Generate professional README files for your GitHub repositories using multiple AI providers. Choose from OpenRouter (free models), OpenAI, Anthropic Claude, or Google AI.</p>
+        </header>
+
+        <main>
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-file-code"></i> Generate a README</h2>
+                </div>
+                <div class="card-body">
+                    <form id="readme-form">
+                        <div class="form-group">
+                            <label for="repo_url"><i class="fab fa-github"></i> GitHub Repository URL</label>
+                            <div class="input-wrapper">
+                                <input type="url" id="repo_url" name="repo_url" placeholder="https://github.com/username/repository" required>
+                                <button type="button" class="paste-btn" id="paste-url" title="Paste from clipboard">
+                                    <i class="fas fa-paste"></i>
+                                </button>
+                            </div>
+                            <small class="form-hint">Enter the full URL to your GitHub repository</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="ai_provider"><i class="fas fa-robot"></i> AI Provider</label>
+                            <select id="ai_provider" name="ai_provider" required>
+                                <option value="openrouter">OpenRouter (Free Models Available)</option>
+                                <option value="openai">OpenAI</option>
+                                <option value="anthropic">Anthropic (Claude)</option>
+                                <option value="google">Google AI</option>
+                            </select>
+                            <small class="form-hint">
+                                Choose your preferred AI provider. API keys are loaded from .env file.
+                            </small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="ai_model"><i class="fas fa-brain"></i> AI Model</label>
+                            <select id="ai_model" name="ai_model" required>
+                                <!-- Options will be populated based on provider selection -->
+                            </select>
+                            <small class="form-hint">
+                                Select the AI model for README generation. Free models are marked.
+                            </small>
+                        </div>
+                        
+                        <button type="submit" id="generate-btn" class="btn btn-primary">
+                            <i class="fas fa-magic"></i> Generate README
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="progress-section" class="card hidden">
+                <div class="card-header">
+                    <h3><i class="fas fa-tasks"></i> Generation Progress</h3>
+                </div>
+                <div class="card-body">
+                    <div class="progress-container">
+                        <div class="progress-step active">
+                            <i class="fas fa-search"></i>
+                            <span>Analyzing Repository</span>
+                        </div>
+                        <div class="progress-step">
+                            <i class="fas fa-robot"></i>
+                            <span>Generating README</span>
+                        </div>
+                        <div class="progress-step">
+                            <i class="fas fa-check"></i>
+                            <span>Complete</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width: 33%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="analysis-section" class="card hidden">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-line"></i> Repository Analysis</h3>
+                </div>
+                <div class="card-body">
+                    <div id="analysis-output" class="analysis-box"></div>
+                </div>
+            </div>
+
+            <div id="results-section" class="hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-file-alt"></i> Generated README</h3>
+                        <div id="loading-spinner" class="spinner hidden"></div>
+                    </div>
+                    <div class="card-body">
+                        <div id="error-message" class="error hidden"></div>
+                        <div class="readme-tabs">
+                            <button class="tab active" data-tab="source">Markdown Source</button>
+                            <button class="tab" data-tab="preview">Preview</button>
+                        </div>
+                        <div class="readme-content">
+                            <div id="readme-output" class="tab-content source-content active"></div>
+                            <div id="readme-preview" class="tab-content preview-content"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="finalize-section" class="card hidden">
+                    <div class="card-header">
+                        <h3><i class="fas fa-tools"></i> README Options</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="button-group">
+                            <button id="copy-btn" class="btn btn-primary">
+                                <i class="fas fa-copy"></i> Copy README
+                            </button>
+                            <button id="download-btn" class="btn btn-primary">
+                                <i class="fas fa-download"></i> Download README.md
+                            </button>
+                        </div>
+                        
+                        <div class="section-regenerate">
+                            <h4>Improve Specific Sections</h4>
+                            <p class="section-hint">Click on a section to regenerate its content with AI</p>
+                            <div class="section-buttons">
+                                <button class="btn-outline-small" data-section="description">
+                                    <i class="fas fa-sync-alt"></i> Description
+                                </button>
+                                <button class="btn-outline-small" data-section="features">
+                                    <i class="fas fa-sync-alt"></i> Features
+                                </button>
+                                <button class="btn-outline-small" data-section="installation">
+                                    <i class="fas fa-sync-alt"></i> Installation
+                                </button>
+                                <button class="btn-outline-small" data-section="usage">
+                                    <i class="fas fa-sync-alt"></i> Usage
+                                </button>
+                                <button class="btn-outline-small" data-section="contributing">
+                                    <i class="fas fa-sync-alt"></i> Contributing
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by <i class="fas fa-flask"></i> Flask and <i class="fas fa-robot"></i> AI</p>
+        </footer>
+    </div>
+    
+    <!-- Toast Container for Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='script-enhanced.js') }}"></script>
+</body>
+</html>
