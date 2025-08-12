@@ -151,30 +151,194 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Simple Markdown to HTML renderer
+    // Enhanced Markdown to HTML renderer
     function renderMarkdownPreview(markdown) {
-        // This is a simplified version, for a real app use a proper markdown library
-        let html = markdown
-            // Headers
-            .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-            .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-            .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+        if (!markdown) {
+            readmePreview.innerHTML = '<div class="markdown-body"><p>No content to preview</p></div>';
+            return;
+        }
+
+        // Process the markdown in stages for better rendering
+        
+        // First, preserve code blocks
+        const codeBlockRegex = /```(?:([a-zA-Z0-9]+))?\n([\s\S]*?)```/g;
+        const codeBlocks = [];
+        let processedMarkdown = markdown.replace(codeBlockRegex, function(match, lang, code) {
+            const placeholder = `CODE_BLOCK_PLACEHOLDER_${codeBlocks.length}`;
+            codeBlocks.push({code, lang: lang || ''});
+            return placeholder;
+        });
+        
+        // Process tables - look for markdown tables
+        processedMarkdown = processMarkdownTables(processedMarkdown);
+        
+        // Process lists properly
+        processedMarkdown = processMarkdownLists(processedMarkdown);
+        
+        // Process everything else
+        let html = processedMarkdown
+            // Headers with proper hierarchy and anchors for navigation
+            .replace(/^# (.*$)/gm, '<h1 id="$1">$1</h1>')
+            .replace(/^## (.*$)/gm, '<h2 id="$1">$1</h2>')
+            .replace(/^### (.*$)/gm, '<h3 id="$1">$1</h3>')
+            .replace(/^#### (.*$)/gm, '<h4 id="$1">$1</h4>')
+            .replace(/^##### (.*$)/gm, '<h5 id="$1">$1</h5>')
+            // Horizontal rule
+            .replace(/^\-\-\-+$/gm, '<hr>')
             // Bold
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             // Italic
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
             // Links
-            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
-            // Code blocks
-            .replace(/```([^`]+)```/g, '<pre><code>$1</code></pre>')
+            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" class="md-link">$1</a>')
             // Inline code
-            .replace(/`([^`]+)`/g, '<code>$1</code>')
-            // Lists
-            .replace(/^\- (.*$)/gm, '<li>$1</li>')
-            // Line breaks
-            .replace(/\n/g, '<br>');
+            .replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
+            // Images
+            .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="md-image">')
+            // Blockquotes
+            .replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>')
+            // Checkboxes
+            .replace(/- \[ \] (.*$)/gm, '<div class="md-checkbox"><input type="checkbox" disabled> <span>$1</span></div>')
+            .replace(/- \[x\] (.*$)/gm, '<div class="md-checkbox"><input type="checkbox" checked disabled> <span>$1</span></div>');
         
-        readmePreview.innerHTML = html;
+        // Re-insert code blocks with syntax highlighting
+        for (let i = 0; i < codeBlocks.length; i++) {
+            const placeholder = `CODE_BLOCK_PLACEHOLDER_${i}`;
+            const {code, lang} = codeBlocks[i];
+            const langClass = lang ? ` language-${lang}` : '';
+            html = html.replace(placeholder, `<pre class="line-numbers"><code class="${langClass}">${escapeHtml(code)}</code></pre>`);
+        }
+        
+        // Paragraphs - must be done after all other processing
+        html = processParagraphs(html);
+        
+        // Set the HTML content with markdown-body wrapper for proper styling
+        readmePreview.innerHTML = '<div class="markdown-body">' + html + '</div>';
+        
+        // Apply syntax highlighting using Prism.js
+        if (window.Prism) {
+            readmePreview.querySelectorAll('pre code').forEach((block) => {
+                Prism.highlightElement(block);
+            });
+        }
+    }
+    
+    // Helper function to escape HTML special characters
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+    
+    // Process markdown tables
+    function processMarkdownTables(text) {
+        const tableRegex = /^\|(.*)\|\r?\n\|\s*[-:]+[-| :]*\|\r?\n((.*\|.*\r?\n)*)/gm;
+        
+        return text.replace(tableRegex, function(match) {
+            // Split table into rows
+            const rows = match.split('\n').filter(row => row.trim());
+            
+            // Process header row
+            const headerRow = rows[0];
+            const headerCells = headerRow.split('|')
+                .filter(cell => cell.trim())
+                .map(cell => `<th>${cell.trim()}</th>`);
+            
+            // Skip alignment row (row 1)
+            
+            // Process data rows
+            const dataRows = [];
+            for (let i = 2; i < rows.length; i++) {
+                if (rows[i].trim()) {
+                    const cells = rows[i].split('|')
+                        .filter(cell => cell.trim())
+                        .map(cell => `<td>${cell.trim()}</td>`);
+                    dataRows.push(`<tr>${cells.join('')}</tr>`);
+                }
+            }
+            
+            return `<div class="table-wrapper"><table class="md-table">
+                <thead><tr>${headerCells.join('')}</tr></thead>
+                <tbody>${dataRows.join('')}</tbody>
+                </table></div>`;
+        });
+    }
+    
+    // Process markdown lists
+    function processMarkdownLists(text) {
+        // Unordered lists
+        let processed = text.replace(/^([ \t]*)-[ \t]+(.*)/gm, function(match, indent, content) {
+            const indentLevel = Math.floor(indent.length / 2);
+            if (indentLevel === 0) {
+                return `<ul>\n<li>${content}</li>`;
+            } else {
+                return `${indent}<li>${content}</li>`;
+            }
+        });
+        
+        // Close unordered lists
+        processed = processed.replace(/<\/li>\n(?!<li|\s*<\/)/g, '</li>\n</ul>\n');
+        
+        // Ordered lists
+        processed = processed.replace(/^([ \t]*)(\d+)\.[ \t]+(.*)/gm, function(match, indent, num, content) {
+            const indentLevel = Math.floor(indent.length / 2);
+            if (indentLevel === 0 && num === '1') {
+                return `<ol>\n<li>${content}</li>`;
+            } else {
+                return `${indent}<li>${content}</li>`;
+            }
+        });
+        
+        // Close ordered lists
+        processed = processed.replace(/<\/li>\n(?!<li|\s*<\/)/g, '</li>\n</ol>\n');
+        
+        return processed;
+    }
+    
+    // Process paragraphs
+    function processParagraphs(html) {
+        // Split by <br> tags that represent newlines
+        const parts = html.split('<br>');
+        let inParagraph = false;
+        let result = '';
+        
+        for (const part of parts) {
+            // Skip empty lines
+            if (!part.trim()) {
+                if (inParagraph) {
+                    result += '</p>\n';
+                    inParagraph = false;
+                }
+                continue;
+            }
+            
+            // Skip if line already contains block elements
+            if (part.match(/^<(h[1-6]|pre|table|ul|ol|blockquote|div|hr)/)) {
+                if (inParagraph) {
+                    result += '</p>\n';
+                    inParagraph = false;
+                }
+                result += part + '\n';
+                continue;
+            }
+            
+            // Add paragraph tags around text
+            if (!inParagraph) {
+                result += '<p>';
+                inParagraph = true;
+            }
+            result += part + '\n';
+        }
+        
+        // Close any open paragraph
+        if (inParagraph) {
+            result += '</p>';
+        }
+        
+        return result;
     }
 
     // Toast notification system
@@ -329,7 +493,14 @@ document.addEventListener('DOMContentLoaded', () => {
             throw new Error(error.error || 'Failed to generate README');
         }
         
-        return response.json();
+        const result = await response.json();
+        
+        // Check if there's a warning to display
+        if (result.warning) {
+            showToast(result.warning, 'warning');
+        }
+        
+        return result;
     }
 
     // Display analysis results
@@ -404,39 +575,136 @@ document.addEventListener('DOMContentLoaded', () => {
             button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Regenerating...';
             
             try {
-                // Extract section content
-                const sectionPattern = new RegExp(`## .*${sectionName}.*\\n([\\s\\S]*?)(?=\\n## |$)`, 'i');
-                const match = finalReadmeContent.match(sectionPattern);
-                const sectionContent = match ? match[1].trim() : '';
+                // Extract section content with improved pattern matching
+                console.log("Extracting content for section:", sectionName);
+                
+                // Format the heading name with first letter capitalized
                 const sectionHeading = `${sectionName.charAt(0).toUpperCase()}${sectionName.slice(1)}`;
+                console.log("Normalized section heading:", sectionHeading);
+                
+                // Try different heading formats (# Heading, ## Heading, etc.)
+                let sectionContent = '';
+                // More flexible regex patterns to match various heading styles
+                const headingFormats = [
+                    // Level 2 heading (most common for sections)
+                    new RegExp(`## ${sectionHeading}[^\n]*\n([\\s\\S]*?)(?=\n## |$)`, 'i'),
+                    
+                    // Level 1 heading 
+                    new RegExp(`# ${sectionHeading}[^\n]*\n([\\s\\S]*?)(?=\n# |$)`, 'i'),
+                    
+                    // Level 3 heading
+                    new RegExp(`### ${sectionHeading}[^\n]*\n([\\s\\S]*?)(?=\n### |$)`, 'i'),
+                    
+                    // Mixed level search - capture content between this heading and any next heading
+                    new RegExp(`(#{1,6})\\s+${sectionHeading}[^\n]*\n([\\s\\S]*?)(?=\n#{1,6}\\s+|$)`, 'i')
+                ];
+                
+                // Try each pattern in order
+                for (const pattern of headingFormats) {
+                    const match = finalReadmeContent.match(pattern);
+                    if (match) {
+                        // For the mixed level pattern, the content will be in match[2]
+                        sectionContent = match[2] ? match[2].trim() : match[1].trim();
+                        console.log(`Found section content with pattern: ${pattern}`);
+                        break;
+                    }
+                }
+                
+                // If still not found, try a more generic search
+                if (!sectionContent) {
+                    console.log("Using fallback pattern for section detection");
+                    // Super flexible fallback - look for anything that resembles the section heading
+                    const fallbackPattern = new RegExp(`[#]+\\s+[^\\n]*${sectionName}[^\\n]*\\n([\\s\\S]*?)(?=\\n[#]+\\s+|$)`, 'i');
+                    const match = finalReadmeContent.match(fallbackPattern);
+                    sectionContent = match ? match[1].trim() : '';
+                }
+                
+                // If we still don't have content, create a placeholder
+                if (!sectionContent) {
+                    console.log("No existing content found for section, using empty content");
+                    sectionContent = `This section will be regenerated.`;
+                }
                 
                 // Call API to regenerate section
+                console.log(`Regenerating section: ${sectionHeading}`);
+                console.log(`Section content length: ${sectionContent ? sectionContent.length : 0}`);
+                
+                const payload = {
+                    section_heading: sectionHeading,
+                    section_content: sectionContent || "",  // Ensure we never send null/undefined
+                    ai_provider: aiProviderSelect.value,
+                    ai_model: aiModelSelect.value
+                };
+                
+                console.log("Sending regeneration request with payload:", payload);
+                
                 const response = await fetch('/api/regenerate_section', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        analysis: analysisData,
-                        section_heading: sectionHeading,
-                        section_content: sectionContent,
-                        ai_provider: aiProviderSelect.value,
-                        ai_model: aiModelSelect.value
-                    })
+                    body: JSON.stringify(payload)
                 });
                 
                 if (!response.ok) {
-                    throw new Error('Failed to regenerate section');
+                    try {
+                        const errorData = await response.json();
+                        const errorMessage = errorData.error || 'Failed to regenerate section';
+                        console.error('Error from server:', errorMessage);
+                        showToast(`Error: ${errorMessage}`, 'error');
+                        throw new Error(errorMessage);
+                    } catch (e) {
+                        console.error('Failed to parse error response:', e);
+                        showToast(`Failed to regenerate section: ${response.status} ${response.statusText}`, 'error');
+                        throw new Error(`Failed to regenerate section: ${response.status} ${response.statusText}`);
+                    }
                 }
                 
-                const result = await response.json();
+                let result;
+                try {
+                    result = await response.json();
+                    console.log("Regeneration successful, received:", result);
+                } catch (e) {
+                    console.error("Failed to parse JSON response:", e);
+                    showToast("Failed to parse response from server", 'error');
+                    throw new Error("Failed to parse response from server");
+                }
+                
+                // Check if there's a warning to display
+                if (result.warning) {
+                    showToast(result.warning, 'warning');
+                }
                 
                 // Replace section in README
                 const newContent = result.content;
-                const updatedReadme = finalReadmeContent.replace(
-                    sectionPattern,
-                    `## ${sectionHeading}\n${newContent}\n`
-                );
+                
+                // Use the same patterns to replace content
+                let updatedReadme = finalReadmeContent;
+                const replaceHeadingFormats = [
+                    new RegExp(`(## ${sectionHeading}[^\n]*\n)([\\s\\S]*?)(?=\n## |$)`, 'i'), 
+                    new RegExp(`(# ${sectionHeading}[^\n]*\n)([\\s\\S]*?)(?=\n# |$)`, 'i'),   
+                    new RegExp(`(### ${sectionHeading}[^\n]*\n)([\\s\\S]*?)(?=\n### |$)`, 'i')
+                ];
+                
+                let replaced = false;
+                for (const pattern of replaceHeadingFormats) {
+                    if (pattern.test(finalReadmeContent)) {
+                        updatedReadme = finalReadmeContent.replace(pattern, `$1${newContent}\n`);
+                        replaced = true;
+                        break;
+                    }
+                }
+                
+                if (!replaced) {
+                    // Fallback - if we couldn't match with specific patterns
+                    const fallbackPattern = new RegExp(`([#]+ .*${sectionName}.*\n)([\\s\\S]*?)(?=\n[#]+ |$)`, 'i');
+                    if (fallbackPattern.test(finalReadmeContent)) {
+                        updatedReadme = finalReadmeContent.replace(fallbackPattern, `$1${newContent}\n`);
+                    } else {
+                        // Last resort - just append the section if it doesn't exist
+                        updatedReadme = finalReadmeContent + `\n\n## ${sectionHeading}\n${newContent}\n`;
+                    }
+                }
                 
                 // Update UI
                 finalReadmeContent = updatedReadme;
@@ -448,7 +716,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast(`${sectionHeading} section regenerated!`, 'success');
             } catch (error) {
                 console.error('Error regenerating section:', error);
-                showToast('Failed to regenerate section', 'error');
+                const errorMsg = error.message || 'Failed to regenerate section';
+                showToast(`Error: ${errorMsg}`, 'error');
             } finally {
                 button.disabled = false;
                 button.innerHTML = originalText;

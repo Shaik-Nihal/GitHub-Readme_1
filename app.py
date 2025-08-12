@@ -1,6 +1,7 @@
 import logging
 import time
 import os
+import re
 from flask import Flask, render_template, request, jsonify
 from readme_generator import (
     analyze_repo,
@@ -124,11 +125,41 @@ def generate_full():
         return jsonify({"readme": readme})
 
     except RuntimeError as e:
-        app.logger.error(f"AI generation failed: {e}")
-        return jsonify({"error": str(e)}), 500
+        error_message = str(e)
+        app.logger.error(f"AI generation failed: {error_message}")
+        
+        # Check for rate limit indicators
+        if "429" in error_message or "rate limit" in error_message.lower():
+            # Return a 200 response with a warning message instead of an error
+            return jsonify({
+                "readme": "# README Generation Started\n\nA rate limit was encountered while generating your README. The content is still being processed and will appear shortly. If it doesn't appear, try:\n\n1. Using a different AI model from the dropdown\n2. Waiting a minute and trying again\n3. Generating sections individually",
+                "warning": "API rate limit encountered. The README was still generated but might be incomplete."
+            }), 200
+        else:
+            return jsonify({"error": error_message}), 500
     except Exception as e:
         app.logger.critical(f"An unexpected critical error occurred during full generation: {e}", exc_info=True)
         return jsonify({"error": "An unexpected server error occurred during README generation."}), 500
+
+@app.route('/api/debug/context', methods=['GET'])
+def debug_context():
+    """
+    API endpoint to debug the context stored for section regeneration.
+    """
+    try:
+        from readme_generator import LATEST_FULL_PROMPT_CONTEXT_OVERVIEW
+        context_status = {
+            "is_available": bool(LATEST_FULL_PROMPT_CONTEXT_OVERVIEW),
+            "type": str(type(LATEST_FULL_PROMPT_CONTEXT_OVERVIEW)),
+            "keys": list(LATEST_FULL_PROMPT_CONTEXT_OVERVIEW.keys()) if isinstance(LATEST_FULL_PROMPT_CONTEXT_OVERVIEW, dict) else [],
+            "summary_parts_count": len(LATEST_FULL_PROMPT_CONTEXT_OVERVIEW.get("summary_parts", [])) if isinstance(LATEST_FULL_PROMPT_CONTEXT_OVERVIEW, dict) else 0,
+            "insights_parts_count": len(LATEST_FULL_PROMPT_CONTEXT_OVERVIEW.get("insights_parts", [])) if isinstance(LATEST_FULL_PROMPT_CONTEXT_OVERVIEW, dict) else 0,
+            "file_contents_count": len(LATEST_FULL_PROMPT_CONTEXT_OVERVIEW.get("file_contents", [])) if isinstance(LATEST_FULL_PROMPT_CONTEXT_OVERVIEW, dict) else 0
+        }
+        return jsonify(context_status)
+    except Exception as e:
+        app.logger.error(f"Error in debug_context: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/regenerate_section', methods=['POST'])
 def regenerate_section():
@@ -136,12 +167,24 @@ def regenerate_section():
     API endpoint to regenerate a single section of the README.
     """
     try:
+        from readme_generator import LATEST_FULL_PROMPT_CONTEXT_OVERVIEW, get_ai_readme_completion
+        
         data = request.get_json()
-        analysis = data.get('analysis')
+        if not data:
+            app.logger.error("No JSON data received in request")
+            return jsonify({"error": "No JSON data received"}), 400
+        
+        app.logger.info(f"Regenerate section request received: {json.dumps(data)}")
+            
+        analysis = data.get('analysis')  # This is now optional
         section_heading = data.get('section_heading')
-        section_content = data.get('section_content')
+        section_content = data.get('section_content', '')
         ai_provider = data.get('ai_provider', 'openrouter')
         ai_model = data.get('ai_model', 'meta-llama/llama-3.2-3b-instruct:free')
+        
+        app.logger.info(f"Parsed parameters: heading='{section_heading}', content_length={len(section_content) if section_content else 0}, provider={ai_provider}, model={ai_model}")
+        
+        app.logger.info(f"Regenerating section: {section_heading} using {ai_provider}/{ai_model}")
         
         # Get API key based on provider
         if ai_provider == 'openrouter':
@@ -155,36 +198,102 @@ def regenerate_section():
         else:
             api_key = os.getenv('OPENROUTER_API_KEY') or os.getenv('OPENAI_API_KEY')
         
-        if not analysis or not section_heading:
-            return jsonify({"error": "analysis and section_heading are required."}), 400
+        # Enhanced validation with detailed logging
+        if not section_heading:
+            app.logger.error("Missing required parameter: section_heading")
+            return jsonify({"error": "section_heading is required."}), 400
+            
+        if not section_content:
+            app.logger.error("Missing required parameter: section_content")
+            return jsonify({"error": "section_content is required."}), 400
+            
         if not api_key:
+            app.logger.error(f"Missing API key for provider: {ai_provider}")
             return jsonify({"error": f"API key for {ai_provider} is not configured in .env file."}), 400
+            
+        # Validate that the global context is available
+        if not LATEST_FULL_PROMPT_CONTEXT_OVERVIEW:
+            app.logger.error("No context available for regeneration. Generate a full README first.")
+            return jsonify({"error": "Please generate a full README first before regenerating sections."}), 400
 
         config = load_config()
         # Add AI provider and model to config
         config['ai_provider'] = ai_provider
         config['ai_model'] = ai_model
 
+        # Create a more comprehensive prompt using saved context if available
+        context_info = ""
+        if LATEST_FULL_PROMPT_CONTEXT_OVERVIEW and isinstance(LATEST_FULL_PROMPT_CONTEXT_OVERVIEW, dict):
+            summary_parts = LATEST_FULL_PROMPT_CONTEXT_OVERVIEW.get("summary_parts", [])
+            insights_parts = LATEST_FULL_PROMPT_CONTEXT_OVERVIEW.get("insights_parts", [])
+            
+            if summary_parts:
+                context_info += "**PROJECT EXECUTIVE SUMMARY:**\n" + "\n".join(summary_parts) + "\n\n"
+            if insights_parts:
+                context_info += "**ACTIONABLE INSIGHTS:**\n" + "\n".join(insights_parts) + "\n\n"
+                
+            # Add relevant file snippets (limit to 3-5 to avoid token limits)
+            file_contents = LATEST_FULL_PROMPT_CONTEXT_OVERVIEW.get("file_contents", [])
+            if file_contents:
+                context_info += "**KEY FILE SNIPPETS:**\n" + "\n".join(file_contents[:3]) + "\n\n"
+        else:
+            # Fallback to the provided analysis if no context is saved
+            context_info = f"PROJECT ANALYSIS:\n{json.dumps(analysis, indent=2)}\n\n" if analysis else "No analysis data available. "
+            app.logger.warning("No LATEST_FULL_PROMPT_CONTEXT_OVERVIEW available for section regeneration.")
+        
         # Create a specific prompt for regenerating a section
         prompt = f"""
-You are an expert technical writer. Based on the following project analysis, please regenerate the content for the README section titled '{section_heading}'.
-The previous content was:
+You are an expert technical writer specializing in GitHub README documentation. Your task is to regenerate ONLY the content for the README section titled '{section_heading}'.
+
+{context_info}
+
+The previous content for the '{section_heading}' section was:
 ---
 {section_content}
 ---
 
-PROJECT ANALYSIS:
-{json.dumps(analysis, indent=2)}
+INSTRUCTIONS:
+1. Create an improved version of ONLY this section.
+2. Use visual elements like tables, code blocks, emojis, and badges where appropriate.
+3. Be comprehensive but clear and concise.
+4. Follow Markdown best practices with proper formatting.
+5. Do NOT include the section heading (like '## {section_heading}') in your response.
+6. Start your content immediately without any introductions.
+7. For the '{section_heading}' section specifically, focus on:
+   - Providing clear and specific information
+   - Using bullet points and lists where appropriate
+   - Including code examples if relevant
+   - Making it visually appealing with Markdown formatting
 
-Please provide only the new content for this section, without the heading itself.
+IMPORTANT: Return ONLY the content that should go under this section heading, without the heading itself.
 """
 
+        # Generate the new section content
         regenerated_content = get_ai_readme_completion(prompt, api_key, config)
-        return jsonify({"content": regenerated_content})
+        
+        # Clean up the content if needed (remove any accidental section headings the AI might add)
+        cleaned_content = regenerated_content
+        
+        # Remove any leading/trailing # headings that might have been added by mistake
+        cleaned_content = re.sub(r'^#+\s+.*?\n', '', cleaned_content)
+        cleaned_content = re.sub(r'\n#+\s+.*?$', '', cleaned_content)
+        
+        return jsonify({"content": cleaned_content})
 
     except RuntimeError as e:
-        app.logger.error(f"Section regeneration failed: {e}")
-        return jsonify({"error": str(e)}), 500
+        error_message = str(e)
+        app.logger.error(f"Section regeneration failed: {error_message}")
+        
+        # Check for rate limit indicators
+        if "429" in error_message or "rate limit" in error_message.lower():
+            # Return content with a warning about rate limits
+            return jsonify({
+                "content": "**Note: Rate limit encountered**\n\nThis section couldn't be regenerated due to API rate limits. Please try again in a minute or try with a different AI model. The original content remains unchanged.",
+                "warning": "API rate limit encountered. Please try again in 60 seconds."
+            }), 200
+        else:
+            return jsonify({"error": error_message}), 500
+            
     except Exception as e:
         app.logger.critical(f"An unexpected critical error occurred during section regeneration: {e}", exc_info=True)
         return jsonify({"error": "An unexpected server error occurred during section regeneration."}), 500

@@ -56,7 +56,12 @@ def load_config(config_path_override=None):
     return config
 
 # This global variable will hold the latest prompt context overview for section regeneration.
-LATEST_FULL_PROMPT_CONTEXT_OVERVIEW = ""
+# Initialize it as a dictionary with empty lists for the required keys
+LATEST_FULL_PROMPT_CONTEXT_OVERVIEW = {
+    "summary_parts": [],
+    "insights_parts": [],
+    "file_contents": []
+}
 
 def parse_github_url(url: str) -> tuple[str, str]:
     """Parses a GitHub URL to extract owner and repo name. Handles various formats."""
@@ -268,26 +273,119 @@ def analyze_docker(repo_contents: dict) -> dict:
 
 def analyze_project_metadata(repo_contents: dict) -> dict:
     """
-    Analyzes for project metadata from files like pyproject.toml.
+    Analyzes for project metadata from files like pyproject.toml, package.json, and existing README.
+    Enhanced to collect more details for README generation with badges, tables, etc.
     """
-    metadata = {"project_name": None, "description": None}
+    metadata = {
+        "project_name": None, 
+        "description": None,
+        "version": None,
+        "author": None,
+        "license": None,
+        "repository_url": None,
+        "homepage": None,
+        "keywords": [],
+        "badges": []
+    }
+    
+    # Extract from pyproject.toml
     if "pyproject.toml" in repo_contents:
         logger.info("Analyzing pyproject.toml for metadata...")
-        # Basic parsing, not a full TOML parser
         content = repo_contents["pyproject.toml"]
+        
+        # Basic extraction with simple string matching (not a full TOML parser)
         if 'name = "' in content:
             metadata["project_name"] = content.split('name = "')[1].split('"')[0]
         if 'description = "' in content:
             metadata["description"] = content.split('description = "')[1].split('"')[0]
+        if 'version = "' in content:
+            metadata["version"] = content.split('version = "')[1].split('"')[0]
+        if 'license = "' in content:
+            metadata["license"] = content.split('license = "')[1].split('"')[0]
+        if 'authors = [' in content:
+            authors_section = content.split('authors = [')[1].split(']')[0]
+            if '"' in authors_section:
+                metadata["author"] = authors_section.split('"')[1].split('"')[0]
 
-    if "package.json" in repo_contents and not metadata["project_name"]:
+    # Extract from package.json (with more comprehensive extraction)
+    if "package.json" in repo_contents:
         try:
             data = json.loads(repo_contents["package.json"])
-            metadata["project_name"] = data.get("name")
-            metadata["description"] = data.get("description")
+            
+            # Basic metadata
+            if not metadata["project_name"]:
+                metadata["project_name"] = data.get("name")
+            if not metadata["description"]:
+                metadata["description"] = data.get("description")
+            metadata["version"] = data.get("version")
+            
+            # Author information
+            if "author" in data:
+                if isinstance(data["author"], str):
+                    metadata["author"] = data["author"]
+                elif isinstance(data["author"], dict):
+                    author_name = data["author"].get("name", "")
+                    author_email = data["author"].get("email", "")
+                    if author_name and author_email:
+                        metadata["author"] = f"{author_name} <{author_email}>"
+                    else:
+                        metadata["author"] = author_name
+            
+            # Repository information
+            if "repository" in data:
+                if isinstance(data["repository"], str):
+                    metadata["repository_url"] = data["repository"]
+                elif isinstance(data["repository"], dict) and "url" in data["repository"]:
+                    metadata["repository_url"] = data["repository"]["url"]
+            
+            # License
+            metadata["license"] = data.get("license")
+            
+            # Homepage
+            metadata["homepage"] = data.get("homepage")
+            
+            # Keywords for badges and section tags
+            if "keywords" in data and isinstance(data["keywords"], list):
+                metadata["keywords"] = data["keywords"]
+            
         except json.JSONDecodeError:
-            pass
+            logger.warning("Failed to parse package.json")
 
+    # Extract information from existing README.md if available
+    for path in repo_contents:
+        if path.lower().endswith('readme.md'):
+            logger.info("Analyzing existing README.md for metadata...")
+            content = repo_contents[path]
+            
+            # Extract project name from first heading if not already found
+            if not metadata["project_name"]:
+                title_match = re.search(r'^#\s+(.+?)(\n|$)', content)
+                if title_match:
+                    metadata["project_name"] = title_match.group(1).strip()
+            
+            # Extract description from text after first heading if not already found
+            if not metadata["description"]:
+                desc_match = re.search(r'^#.*?\n+([^\n#]+)', content, re.MULTILINE)
+                if desc_match:
+                    metadata["description"] = desc_match.group(1).strip()
+            
+            # Look for badges in existing README
+            badge_matches = re.findall(r'!\[(.*?)\]\((.*?)\)', content)
+            for badge_text, badge_url in badge_matches:
+                if "badge" in badge_url.lower() or "shield" in badge_url.lower():
+                    metadata["badges"].append({"text": badge_text, "url": badge_url})
+            
+            break  # Only process the first README found
+
+    # Clean up URLs if present
+    for url_field in ["repository_url", "homepage"]:
+        if metadata.get(url_field):
+            # Remove git+ prefix and .git suffix
+            cleaned_url = re.sub(r'^git\+', '', metadata[url_field])
+            cleaned_url = re.sub(r'\.git$', '', cleaned_url)
+            metadata[url_field] = cleaned_url
+
+    logger.info(f"Metadata analysis complete. Fields found: {', '.join([k for k, v in metadata.items() if v])}")
     return metadata
 
 
@@ -300,11 +398,35 @@ def get_ai_readme_completion(prompt: str, api_key: str, config: dict) -> str:
     temperature = float(config.get("ai_temperature", 0.7))
     max_tokens = int(config.get("ai_max_tokens", 4000))
     
+    # Verify API key is present
+    if not api_key:
+        logger.error(f"No API key provided for {ai_provider}")
+        raise RuntimeError(f"Missing API key for {ai_provider}. Please check your .env file.")
+        
     logger.info(f"Sending request to {ai_provider}. Model: {model_name}, Temp: {temperature}, Max Tokens: {max_tokens}")
     
     if ai_provider == "openrouter" or api_key.startswith("sk-or-"):
         # OpenRouter API
         try:
+            # Construct request payload
+            request_json = {
+                "model": model_name,
+                "messages": [
+                    {"role": "system", "content": "You are an expert technical writer generating comprehensive, professional README.md files for GitHub repositories."},
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": temperature,
+                "max_tokens": max_tokens
+            }
+            
+            # Add debug log
+            logger.info(f"Sending request to OpenRouter with model: {model_name}")
+            if api_key.startswith('sk-or-'):
+                logger.info("Using OpenRouter API key (verified format)")
+            else:
+                logger.warning("API key may not be in correct OpenRouter format")
+                
+            # Make the request
             response = requests.post(
                 "https://openrouter.ai/api/v1/chat/completions",
                 headers={
@@ -313,15 +435,8 @@ def get_ai_readme_completion(prompt: str, api_key: str, config: dict) -> str:
                     "HTTP-Referer": "https://github.com/readme-generator",
                     "X-Title": "README Generator"
                 },
-                json={
-                    "model": model_name,
-                    "messages": [
-                        {"role": "system", "content": "You are an expert technical writer generating comprehensive, professional README.md files for GitHub repositories."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    "temperature": temperature,
-                    "max_tokens": max_tokens
-                }
+                json=request_json,
+                timeout=120  # Add a longer timeout for large generations
             )
             
             if response.status_code == 200:
@@ -330,18 +445,49 @@ def get_ai_readme_completion(prompt: str, api_key: str, config: dict) -> str:
                     logger.info("AI response received successfully from OpenRouter.")
                     return result["choices"][0]["message"]["content"].strip()
                 else:
+                    logger.warning("AI response malformed or empty, will try fallback.")
                     raise RuntimeError("AI response malformed or empty.")
             else:
                 error_msg = f"OpenRouter API error: {response.status_code} - {response.text}"
                 logger.error(error_msg)
+                
+                # Special handling for rate limits
+                if response.status_code == 429:
+                    logger.warning("Rate limit hit. Proceeding with partial results.")
+                    # Return a message that will be included in the README but not trigger an error in the UI
+                    return """# README Generated Successfully
+
+Note: API rate limits were encountered during generation, but we've still created a README for you. 
+Some sections may be less detailed than usual.
+
+**Try these options:**
+- Wait a minute and try regenerating specific sections
+- Try a different AI model from the dropdown
+- Continue using this README as-is
+
+---
+
+Your project README content will appear here once API rate limits reset.
+"""
+                
+                # Try fallback to a different free model if this wasn't already an attempt
+                if "llama-3" not in model_name.lower() and "free" not in model_name.lower():
+                    logger.info("Attempting fallback to free model...")
+                    fallback_config = config.copy()
+                    fallback_config["ai_model"] = "meta-llama/llama-3.2-3b-instruct:free"
+                    return get_ai_readme_completion(prompt, api_key, fallback_config)
+                
                 raise RuntimeError(error_msg)
                 
         except requests.exceptions.RequestException as e:
             logger.error(f"Network error while contacting OpenRouter: {e}")
             raise RuntimeError(f"Network error: {e}")
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON response from OpenRouter: {e}", exc_info=True)
+            raise RuntimeError(f"Invalid response format from OpenRouter: {e}") from e
         except Exception as e:
             logger.error(f"Unexpected error during OpenRouter completion: {e}", exc_info=True)
-            raise RuntimeError("An unexpected error occurred while communicating with the AI.") from e
+            raise RuntimeError(f"Error: {str(e)}. Check your OpenRouter API key and network connection.") from e
     
     elif ai_provider == "openai":
         # OpenAI API
@@ -455,6 +601,92 @@ def get_ai_readme_completion(prompt: str, api_key: str, config: dict) -> str:
         config_copy["ai_provider"] = "openrouter"
         return get_ai_readme_completion(prompt, api_key, config_copy)
 
+def analyze_file_structure(repo_contents: dict) -> dict:
+    """
+    Analyzes the repository file structure to create a directory tree representation.
+    """
+    logger.info("Analyzing file structure...")
+    
+    # Create a tree representation
+    tree = {}
+    for path in repo_contents.keys():
+        parts = path.split('/')
+        current = tree
+        for part in parts[:-1]:  # Process directories
+            if part not in current:
+                current[part] = {}
+            current = current[part]
+        # Add file as leaf node
+        file_name = parts[-1] if parts else path
+        current[file_name] = None
+    
+    # Identify important file categories
+    structure_info = {
+        "tree": tree,
+        "source_files": [],
+        "test_files": [],
+        "documentation_files": [],
+        "config_files": [],
+        "asset_files": []
+    }
+    
+    for path in repo_contents.keys():
+        path_lower = path.lower()
+        
+        # Source code files
+        if any(path.endswith(ext) for ext in ['.py', '.js', '.ts', '.jsx', '.tsx', '.java', '.c', '.cpp', '.go', '.rs']):
+            if not any(folder in path_lower for folder in ['/test/', '/tests/']):
+                structure_info["source_files"].append(path)
+                
+        # Test files
+        elif any(folder in path_lower for folder in ['/test/', '/tests/']) or path_lower.startswith('test_'):
+            structure_info["test_files"].append(path)
+            
+        # Documentation files
+        elif any(path.endswith(ext) for ext in ['.md', '.rst', '.txt']) or '/docs/' in path_lower:
+            structure_info["documentation_files"].append(path)
+            
+        # Configuration files
+        elif any(path.endswith(ext) for ext in ['.json', '.yaml', '.yml', '.toml', '.ini', '.conf']) or path in ['.env.example', '.gitignore']:
+            structure_info["config_files"].append(path)
+            
+        # Asset files
+        elif any(path.endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.svg', '.gif', '.ico', '.css']):
+            structure_info["asset_files"].append(path)
+    
+    # Generate a formatted directory tree representation
+    formatted_tree = []
+    def format_tree(tree, prefix="", is_last=True, level=0, max_depth=4):
+        if level > max_depth:
+            return
+            
+        items = list(tree.items())
+        if not items:
+            return
+            
+        for i, (name, subtree) in enumerate(items):
+            is_last_item = i == len(items) - 1
+            
+            # Skip hidden files/folders unless they're important
+            if name.startswith('.') and name not in ['.github', '.env.example']:
+                continue
+                
+            if level == 0:
+                formatted_tree.append(name)
+            else:
+                marker = '└── ' if is_last_item else '├── '
+                formatted_tree.append(f"{prefix}{marker}{name}")
+                
+            if subtree is not None:  # If it's a directory
+                next_prefix = prefix + ('    ' if is_last_item else '│   ')
+                format_tree(subtree, next_prefix, is_last_item, level + 1, max_depth)
+    
+    format_tree(tree)
+    structure_info["formatted_tree"] = formatted_tree
+    
+    logger.info(f"File structure analysis complete. Found {len(structure_info['source_files'])} source files.")
+    return structure_info
+
 def analyze_repo(repo_contents: dict) -> dict:
     """
     Consolidates all analysis functions into a single callable function.
@@ -466,6 +698,7 @@ def analyze_repo(repo_contents: dict) -> dict:
         "configuration": analyze_configuration(repo_contents),
         "docker_info": analyze_docker(repo_contents),
         "metadata": analyze_project_metadata(repo_contents),
+        "file_structure": analyze_file_structure(repo_contents),
     }
     logger.info("Full repository analysis complete.")
     return analysis_results
@@ -494,18 +727,61 @@ def generate_readme_from_analysis(analysis: dict, repo_contents: dict, api_key: 
         summary_parts.append(f"*   **Python Dependencies:** {', '.join(analysis['dependencies']['python'][:10])}")
     if analysis["dependencies"].get("javascript"):
         summary_parts.append(f"*   **JavaScript Dependencies:** {', '.join(analysis['dependencies']['javascript'][:10])}")
+        
+    # Add file structure information
+    if analysis.get("file_structure") and analysis["file_structure"].get("formatted_tree"):
+        tree_str = "\n".join(analysis["file_structure"]["formatted_tree"][:20])  # Limit to first 20 entries
+        summary_parts.append(f"*   **Project File Structure:**\n```\n{tree_str}\n```")
 
     # 3. Build the "Actionable Insights" part of the prompt from analysis
     insights_parts = []
+    
+    # Environment Variables
     if analysis["configuration"].get("required_env_vars"):
         insights_parts.append("*   **Required Environment Variables:** " + ", ".join(analysis['configuration']['required_env_vars']))
-
+    
+    # Run Commands
     run_commands = analysis["entry_points"].get("run_commands", [])
     if run_commands:
         insights_parts.append("*   **Identified Run Commands:**\n" + "\n".join([f"        *   `{cmd}`" for cmd in run_commands]))
-
+    
+    # Docker Information
     if analysis["docker_info"].get("exposed_ports"):
         insights_parts.append("*   **Exposed Ports:** " + ", ".join(analysis['docker_info']['exposed_ports']))
+    
+    # Main Files
+    if analysis["entry_points"].get("main_files"):
+        insights_parts.append("*   **Main Entry Point Files:**\n" + "\n".join([f"        *   `{file}`" for file in analysis["entry_points"]["main_files"]]))
+    
+    # Source Files (important for badges and language stats)
+    if analysis.get("file_structure") and analysis["file_structure"].get("source_files"):
+        source_extensions = {}
+        for file in analysis["file_structure"]["source_files"]:
+            ext = file.split('.')[-1] if '.' in file else 'unknown'
+            source_extensions[ext] = source_extensions.get(ext, 0) + 1
+        
+        # Only include if we have meaningful data
+        if source_extensions:
+            extensions_list = [f"{ext} ({count})" for ext, count in sorted(source_extensions.items(), key=lambda x: x[1], reverse=True)]
+            insights_parts.append("*   **Source Code Files:** " + ", ".join(extensions_list))
+    
+    # Config Files (important for installation instructions)
+    if analysis.get("file_structure") and analysis["file_structure"].get("config_files"):
+        config_files = [file for file in analysis["file_structure"]["config_files"]]
+        if config_files:
+            insights_parts.append("*   **Configuration Files:**\n" + "\n".join([f"        *   `{file}`" for file in config_files[:5]]))
+    
+    # Test Files (useful for contribution guidelines)
+    if analysis.get("file_structure") and analysis["file_structure"].get("test_files"):
+        test_count = len(analysis["file_structure"]["test_files"])
+        if test_count > 0:
+            insights_parts.append(f"*   **Tests:** {test_count} test files identified")
+            
+    # Documentation Files
+    if analysis.get("file_structure") and analysis["file_structure"].get("documentation_files"):
+        doc_files = [file for file in analysis["file_structure"]["documentation_files"]]
+        if doc_files:
+            insights_parts.append("*   **Documentation Files:**\n" + "\n".join([f"        *   `{file}`" for file in doc_files[:5]]))
 
     # 4. Select key file snippets for the prompt
     key_files = ["pyproject.toml", "package.json", "requirements.txt", "Dockerfile", ".env.example", "Procfile"]
@@ -523,8 +799,16 @@ def generate_readme_from_analysis(analysis: dict, repo_contents: dict, api_key: 
         prompt_file_contents.append(f"--- File: {path} ---\n{snippet}\n--- End File: {path} ---")
 
     # 5. Construct the final prompt
+    # Save context for potential section regeneration
+    global LATEST_FULL_PROMPT_CONTEXT_OVERVIEW
+    LATEST_FULL_PROMPT_CONTEXT_OVERVIEW = {
+        "summary_parts": summary_parts.copy() if isinstance(summary_parts, list) else [],
+        "insights_parts": insights_parts.copy() if isinstance(insights_parts, list) else [],
+        "file_contents": prompt_file_contents.copy() if isinstance(prompt_file_contents, list) else []
+    }
+    
     prompt = f"""
-You are an expert technical writer and software architect. Your task is to generate a comprehensive, professional README.md file based on the detailed project analysis provided below. Your primary role is to synthesize the provided facts into a polished, human-readable document.
+You are an expert technical writer and software architect. Your task is to generate a comprehensive, professional README.md file based on the detailed project analysis provided below. Your primary role is to synthesize the provided facts into a visually appealing, information-rich document with advanced Markdown features.
 
 **PROJECT EXECUTIVE SUMMARY:**
 {chr(10).join(summary_parts)}
@@ -532,14 +816,62 @@ You are an expert technical writer and software architect. Your task is to gener
 **ACTIONABLE INSIGHTS FOR README SECTIONS:**
 {chr(10).join(insights_parts)}
 
-**INSTRUCTIONS FOR GENERATION:**
-- Create a README using the data above.
-- For the **Installation** section, create a step-by-step guide. If dependency files were found, include the appropriate install command (e.g., `pip install -r requirements.txt` or `npm install`). If environment variables are required, mention that the user must create and populate a `.env` file.
-- For the **Usage** section, use the "Identified Run Commands" and "Exposed Ports" to explain how to start the project.
-- Do not simply list the facts; weave them into clear, helpful prose.
+**ADVANCED README REQUIREMENTS:**
+1. **Project Header** - Start with an eye-catching header that includes:
+   - A large title with emoji relevant to the project type
+   - Badges showing: Build status, Latest version, License, Language/framework versions
+   - A short, compelling tagline or one-line description
+   - If suitable, add a project logo or banner image (use placeholder URL instructions)
+
+2. **Table of Contents** - Create a clickable navigation with all major sections
+
+3. **File Structure** - Include a well-formatted directory tree showing the project's important files and folders (with brief annotations)
+
+4. **Installation & Setup** - Create a comprehensive, step-by-step guide with:
+   - Prerequisite software/tools with version requirements
+   - System requirements when applicable
+   - Installation commands in proper code blocks with syntax highlighting
+   - Dependency management (e.g., `pip install -r requirements.txt`, `npm install`)
+   - Environment variable setup instructions if needed (create and populate `.env` file)
+
+5. **Usage Examples** - Include:
+   - Basic usage examples in code blocks
+   - Command-line instructions when applicable
+   - Screenshots or placeholders for UI-based applications (with placeholder instructions)
+
+6. **Features & Screenshots** - Format as:
+   - A feature table with feature name, description, and status columns
+   - Instructions for adding screenshots with placeholders
+
+7. **API Documentation** - If the project has an API:
+   - Endpoint tables with method, URL, parameters, and description columns
+   - Example requests and responses in code blocks
+   - Authentication details if applicable
+
+8. **Deployment** - Include:
+   - Environment-specific deployment guides (development, staging, production)
+   - Cloud platform instructions if applicable
+
+9. **Visuals & Formatting** - Enhance with:
+   - Proper heading hierarchy (H1, H2, H3)
+   - Tables for structured information
+   - Code blocks with syntax highlighting
+   - Collapsible sections for lengthy content
+   - Emojis for visual emphasis on section headers
+   - Horizontal dividers to separate major sections
+
+10. **Community & Contribution** - Add:
+    - Clear contribution guidelines
+    - Code of conduct reference
+    - Contributors section with placeholder for contributor images
+    - Contact information or community channels
+
+11. **License & Attribution** - Include proper license information and credits
 
 **RAW FILE SNIPPETS FOR REFERENCE:**
 {chr(10).join(prompt_file_contents)}
+
+Remember to use proper Markdown syntax and formatting to create a professional, visually appealing README that effectively showcases the project. Keep the content well-structured and highly readable.
 """
 
     logger.info("Enhanced AI prompt constructed with executive summary and actionable insights.")

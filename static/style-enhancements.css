@@ -27,43 +27,68 @@ footer i {
 .readme-tabs {
     display: flex;
     border-bottom: 1px solid var(--border-color);
-    margin-bottom: 1rem;
+    margin-bottom: 0;
     background-color: var(--light-bg);
-    padding: 0.25rem 0.25rem 0;
+    padding: 0.5rem 0.5rem 0;
     border-radius: var(--radius) var(--radius) 0 0;
+    position: relative;
+    z-index: 2;
 }
 
 .tab {
     padding: 0.75rem 1.25rem;
-    background: none;
-    border: none;
-    border-radius: var(--radius) var(--radius) 0 0;
+    background: #f5f7fa;
+    border: 1px solid #e1e4e8;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
     cursor: pointer;
     font-weight: 500;
     font-size: 0.9rem;
     color: var(--text-muted);
     transition: all var(--transition-fast);
     position: relative;
+    margin-right: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
 .tab:hover {
     color: var(--dark-text);
-    background-color: rgba(0, 0, 0, 0.025);
+    background-color: #f0f2f5;
 }
 
 .tab.active {
     color: var(--primary-color);
     background-color: white;
+    margin-bottom: -1px;
+    z-index: 1;
+    font-weight: 600;
 }
 
-.tab.active::after {
+.tab.active::before {
     content: '';
     position: absolute;
-    bottom: -1px;
+    top: -1px;
     left: 0;
     width: 100%;
-    height: 2px;
+    height: 3px;
     background-color: var(--primary-color);
+    border-radius: 3px 3px 0 0;
+}
+
+.tab[data-tab="source"]::after {
+    content: '\f121';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    font-size: 0.8rem;
+}
+
+.tab[data-tab="preview"]::after {
+    content: '\f06e';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    font-size: 0.8rem;
 }
 
 .tab-content {
@@ -76,11 +101,18 @@ footer i {
     animation: fadeIn 0.3s ease;
 }
 
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 .readme-content {
     position: relative;
     border: 1px solid var(--border-color);
     border-top: none;
     border-radius: 0 0 var(--radius) var(--radius);
+    box-shadow: var(--shadow-sm);
+    background: white;
 }
 
 .source-content {
@@ -171,31 +203,276 @@ footer i {
     overflow-y: auto;
     background-color: white;
     color: var(--dark-text);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.2) transparent;
 }
 
-.preview-content h1 {
-    font-size: 1.8rem;
-    margin-bottom: 1.25rem;
-    padding-bottom: 0.5rem;
+/* Custom scrollbar for Webkit browsers */
+.preview-content::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.preview-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.preview-content::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 4px;
+}
+
+.preview-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0,0,0,0.3);
+}
+
+/* Markdown body wrapper */
+.markdown-body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    word-wrap: break-word;
+    color: var(--dark-text);
+}
+
+/* Headers */
+.markdown-body h1 {
+    font-size: 2rem;
+    margin: 1.5rem 0 1rem 0;
+    padding-bottom: 0.3rem;
     border-bottom: 1px solid var(--border-color);
     font-weight: 600;
-    line-height: 1.2;
+    line-height: 1.25;
 }
 
-.preview-content h2 {
-    font-size: 1.4rem;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.25rem;
+.markdown-body h2 {
+    font-size: 1.5rem;
+    margin: 1.8rem 0 0.8rem 0;
+    padding-bottom: 0.3rem;
     border-bottom: 1px solid var(--border-color);
     font-weight: 600;
     color: var(--dark-text);
 }
 
-.preview-content h3 {
+.markdown-body h3 {
     font-size: 1.25rem;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
+    margin: 1.5rem 0 0.8rem 0;
+    font-weight: 600;
+}
+
+.markdown-body h4 {
+    font-size: 1rem;
+    margin: 1.25rem 0 0.7rem 0;
+    font-weight: 600;
+}
+
+.markdown-body h5 {
+    font-size: 0.875rem;
+    margin: 1rem 0 0.6rem 0;
+    font-weight: 600;
+}
+
+/* Paragraphs and text */
+.markdown-body p {
+    margin-bottom: 1rem;
+}
+
+/* Lists */
+.markdown-body ul,
+.markdown-body ol {
+    padding-left: 2rem;
+    margin-bottom: 1rem;
+}
+
+.markdown-body li {
+    margin-bottom: 0.5rem;
+}
+
+.markdown-body li > ul,
+.markdown-body li > ol {
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+}
+
+/* Code blocks */
+.markdown-body pre {
+    background-color: #f6f8fa;
+    border-radius: 6px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+.markdown-body code {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.85em;
+    background-color: #f6f8fa;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+}
+
+.markdown-body pre code {
+    padding: 0;
+    background-color: transparent;
+    white-space: pre;
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+    line-height: 1.5;
+}
+
+.inline-code {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.85em;
+    padding: 0.2em 0.4em;
+    background: #f6f8fa;
+    border-radius: 3px;
+}
+
+/* Tables */
+.markdown-body .table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+.markdown-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+.markdown-body table th,
+.markdown-body table td {
+    padding: 0.5rem 1rem;
+    border: 1px solid #dfe2e5;
+    text-align: left;
+}
+
+.markdown-body table th {
+    background-color: #f6f8fa;
+    font-weight: 600;
+}
+
+.markdown-body table tr:nth-child(2n) {
+    background-color: #f8f8f8;
+}
+
+/* Blockquotes */
+.markdown-body blockquote {
+    padding: 0 1rem;
+    color: #6a737d;
+    border-left: 0.25rem solid #dfe2e5;
+    margin-bottom: 1rem;
+}
+
+/* Horizontal rule */
+.markdown-body hr {
+    height: 0.25rem;
+    padding: 0;
+    margin: 1.5rem 0;
+    background-color: #e1e4e8;
+    border: 0;
+}
+
+/* Links */
+.markdown-body .md-link {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.markdown-body .md-link:hover {
+    text-decoration: underline;
+}
+
+/* Images */
+.markdown-body .md-image {
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 1rem 0;
+    border-radius: 6px;
+}
+
+/* Badges and small images */
+.markdown-body img[src*="shield.io"],
+.markdown-body img[src*="badges"],
+.markdown-body img[src*="badge"],
+.markdown-body img[height="20"],
+.markdown-body img[height="22"],
+.markdown-body img[height="24"] {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 4px 4px 0;
+    border-radius: 3px;
+}
+
+/* Improved image layout */
+.markdown-body .image-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.markdown-body .image-gallery img {
+    max-width: calc(50% - 0.5rem);
+    object-fit: cover;
+}
+
+/* Checkboxes */
+.markdown-body .md-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.markdown-body .md-checkbox input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+/* File tree structure styling */
+.markdown-body .file-tree {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    line-height: 1.5;
+    white-space: pre;
+    margin-bottom: 1rem;
+}
+
+.markdown-body .file-tree code {
+    background-color: transparent;
+    padding: 0;
+}
+
+/* Custom styling for line numbers in code blocks */
+.markdown-body pre.line-numbers {
+    position: relative;
+    padding-left: 3.8em;
+    counter-reset: linenumber;
+    white-space: pre-wrap;
+}
+
+.markdown-body pre.line-numbers > code {
+    position: relative;
+}
+
+/* Additional badge styling */
+.markdown-body .badge-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+/* Center align content when needed */
+.markdown-body .center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin: 1rem 0;
+}
+
+.markdown-body .center img {
+    margin: 0.5rem 0;
 }
 
 .preview-content p {
