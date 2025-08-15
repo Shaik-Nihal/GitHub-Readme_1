@@ -85,15 +85,17 @@ body {
 
 /* Hero Section */
 .hero-section {
-    min-height: 90vh;
+    min-height: 100vh; /* Full viewport height */
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     background: var(--dark-bg);
     overflow: hidden;
+    padding: 0rem  0rem 0; /* Top/bottom padding for hero section */
 }
 
+/* Animated background gradients */
 .hero-background {
     position: absolute;
     top: 0;
@@ -104,7 +106,7 @@ body {
         radial-gradient(circle at 20% 20%, rgba(0, 217, 255, 0.1) 0%, transparent 50%),
         radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
         radial-gradient(circle at 40% 60%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
-    animation: heroGradientMove 20s ease infinite;
+    animation: heroGradientMove 20s ease infinite; /* Animation duration for background movement */
 }
 
 @keyframes heroGradientMove {
@@ -122,6 +124,7 @@ body {
     }
 }
 
+/* Floating particle effects */
 .hero-particles {
     position: absolute;
     top: 0;
@@ -129,71 +132,76 @@ body {
     width: 100%;
     height: 100%;
     background-image: 
-        radial-gradient(2px 2px at 20px 30px, rgba(0, 217, 255, 0.3), transparent),
-        radial-gradient(2px 2px at 40px 70px, rgba(99, 102, 241, 0.2), transparent),
-        radial-gradient(1px 1px at 90px 40px, rgba(139, 92, 246, 0.3), transparent),
-        radial-gradient(1px 1px at 130px 80px, rgba(0, 217, 255, 0.2), transparent),
-        radial-gradient(2px 2px at 160px 30px, rgba(99, 102, 241, 0.1), transparent);
+        radial-gradient(2px 2px at 20px 30px, rgba(0, 217, 255, 0.3), transparent), /* Particle size: 2px */
+        radial-gradient(2px 2px at 40px 70px, rgba(99, 102, 241, 0.2), transparent), /* Particle size: 2px */
+        radial-gradient(1px 1px at 90px 40px, rgba(139, 92, 246, 0.3), transparent), /* Particle size: 1px */
+        radial-gradient(1px 1px at 130px 80px, rgba(0, 217, 255, 0.2), transparent), /* Particle size: 1px */
+        radial-gradient(2px 2px at 160px 30px, rgba(99, 102, 241, 0.1), transparent); /* Particle size: 2px */
     background-repeat: repeat;
-    background-size: 200px 100px;
-    animation: particleFloat 25s linear infinite;
-    opacity: 0.6;
+    background-size: 200px 100px; /* Background pattern repeat size */
+    animation: particleFloat 25s linear infinite; /* Particle movement duration */
+    opacity: 0.6; /* Particle transparency */
 }
 
 @keyframes particleFloat {
     0% { transform: translate(0, 0); }
-    100% { transform: translate(-200px, -100px); }
+    100% { transform: translate(-200px, -100px); } /* Particle movement distance */
 }
 
+/* Main hero content container */
 .hero-content {
-    max-width: 1400px;
+    max-width: 1400px; /* Maximum container width */
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 0 1rem; /* Left/right padding for content */
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
+    grid-template-columns: 1fr 1fr; /* Two equal columns */
+    gap: 3rem; /* Gap between left and right sections */
     align-items: center;
     z-index: 2;
     position: relative;
 }
 
+/* Left side content */
 .hero-left {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.8rem; /* Vertical gap between elements */
 }
 
+/* Top badge/label */
 .hero-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1.5rem;
+    gap: 0.75rem; /* Gap between icon and text in badge */
+    padding: 0.75rem 1.5rem; /* Badge padding: top/bottom left/right */
     background: linear-gradient(135deg, rgba(0, 217, 255, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
     border: 1px solid rgba(0, 217, 255, 0.3);
     border-radius: var(--radius-lg);
     color: var(--accent-cyan);
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-size: 0.9rem; /* Badge text size */
+    font-weight: 600; /* Badge font weight */
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     width: fit-content;
     box-shadow: var(--shadow-neon);
 }
 
+/* Main hero title */
 .hero-title {
-    font-size: clamp(2.5rem, 8vw, 5rem);
-    font-weight: 900;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
+    font-size: clamp(2.5rem, 6.5vw, 4.5rem); /* Responsive title size: min, preferred, max */
+    font-weight: 900; /* Title font weight */
+    line-height: 1.1; /* Title line height */
+    letter-spacing: -0.02em; /* Title letter spacing */
     margin: 0;
 }
 
 .hero-title i {
-    font-size: 0.8em;
-    margin-right: 0.5rem;
+    font-size: 0.8em; /* Icon size relative to title */
+    margin-right: 0.5rem; /* Space between icon and text */
     color: var(--text-secondary);
 }
 
+/* Gradient text effect */
 .gradient-text {
     background: var(--gradient-text);
     -webkit-background-clip: text;
@@ -203,18 +211,20 @@ body {
     display: inline-block;
 }
 
+/* Hero description text */
 .hero-description {
-    font-size: 1.25rem;
+    font-size: 1.1rem; /* Description text size */
     color: var(--text-secondary);
-    line-height: 1.6;
+    line-height: 1.5; /* Description line height */
     margin: 0;
-    max-width: 600px;
+    max-width: 550px; /* Maximum width for description */
 }
 
+/* Statistics display */
 .hero-stats {
     display: flex;
-    gap: 3rem;
-    margin: 1rem 0;
+    gap: 4rem; /* Gap between stat items */
+    margin: 0;
 }
 
 .stat-item {
@@ -222,42 +232,44 @@ body {
 }
 
 .stat-number {
-    font-size: 2.5rem;
-    font-weight: 800;
+    font-size: 2rem; /* Statistic number size */
+    font-weight: 800; /* Statistic number font weight */
     background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     display: block;
     line-height: 1;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.3rem; /* Gap between number and label */
 }
 
 .stat-label {
     color: var(--text-muted);
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 0.9rem; /* Statistic label size */
+    font-weight: 500; /* Statistic label font weight */
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.1em; /* Statistic label letter spacing */
 }
 
+/* Button container */
 .hero-buttons {
     display: flex;
-    gap: 1.5rem;
-    margin-top: 1rem;
+    gap: 1.5rem; /* Gap between buttons */
+    margin-top: 0;
 }
 
+/* Primary hero button */
 .btn-hero-primary {
     display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 2rem;
+    gap: 0.75rem; /* Gap between icon and text in button */
+    padding: 1rem 2rem; /* Button padding: top/bottom left/right */
     background: var(--gradient-primary);
     color: white;
     border: none;
     border-radius: var(--radius-lg);
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 1.1rem; /* Primary button text size */
+    font-weight: 700; /* Primary button font weight */
     cursor: pointer;
     transition: all var(--transition);
     box-shadow: var(--shadow-neon);
@@ -273,56 +285,59 @@ body {
     width: 100%;
     height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.6s;
+    transition: left 0.6s; /* Shimmer effect duration */
 }
 
 .btn-hero-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 40px rgba(0, 217, 255, 0.6), var(--shadow-lg);
-    filter: brightness(1.1);
+    transform: translateY(-2px); /* Hover lift distance */
+    box-shadow: 0 0 40px rgba(0, 217, 255, 0.6), var(--shadow-lg); /* Hover glow size */
+    filter: brightness(1.1); /* Hover brightness increase */
 }
 
 .btn-hero-primary:hover::before {
     left: 100%;
 }
 
+/* Secondary hero button */
 .btn-hero-secondary {
     display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 2rem;
+    gap: 0.75rem; /* Gap between icon and text in button */
+    padding: 1rem 2rem; /* Button padding: top/bottom left/right */
     background: rgba(255, 255, 255, 0.1);
     color: var(--text-primary);
-    border: 2px solid rgba(0, 217, 255, 0.3);
+    border: 2px solid rgba(0, 217, 255, 0.3); /* Border thickness */
     border-radius: var(--radius-lg);
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 1.1rem; /* Secondary button text size */
+    font-weight: 600; /* Secondary button font weight */
     cursor: pointer;
     transition: all var(--transition);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px); /* Background blur amount */
     -webkit-backdrop-filter: blur(10px);
 }
 
 .btn-hero-secondary:hover {
     background: rgba(0, 217, 255, 0.1);
     border-color: var(--accent-cyan);
-    transform: translateY(-2px);
+    transform: translateY(-2px); /* Hover lift distance */
     box-shadow: var(--shadow-md);
 }
 
+/* Right side content */
 .hero-right {
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
+/* Code preview window */
 .code-window {
     background: var(--card-bg);
     border-radius: var(--radius-xl);
     overflow: hidden;
     box-shadow: var(--shadow-lg);
-    border: 1px solid var(--border-color);
-    max-width: 500px;
+    border: 1px solid var(--border-color); /* Border thickness */
+    max-width: 500px; /* Maximum code window width */
     width: 100%;
     position: relative;
 }
@@ -333,27 +348,29 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 2px;
+    height: 2px; /* Top accent line thickness */
     background: var(--gradient-primary);
 }
 
+/* Code window header */
 .window-header {
     background: var(--dark-bg-secondary);
-    padding: 1rem 1.5rem;
+    padding: 1rem 1.5rem; /* Header padding: top/bottom left/right */
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color); /* Bottom border thickness */
 }
 
+/* Window control buttons */
 .window-controls {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.5rem; /* Gap between control buttons */
 }
 
 .control {
-    width: 12px;
-    height: 12px;
+    width: 12px; /* Control button size */
+    height: 12px; /* Control button size */
     border-radius: 50%;
 }
 
@@ -362,38 +379,39 @@ body {
 .control.green { background: #28ca42; }
 
 .window-title {
-    font-size: 0.9rem;
+    font-size: 0.9rem; /* Window title text size */
     color: var(--text-muted);
-    font-weight: 500;
+    font-weight: 500; /* Window title font weight */
 }
 
+/* Code content area */
 .code-content {
-    padding: 1.5rem;
+    padding: 1.25rem; /* Code content padding */
     font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    font-size: 0.9rem;
-    line-height: 1.6;
-    min-height: 200px;
+    font-size: 0.85rem; /* Code text size */
+    line-height: 1.5; /* Code line height */
+    min-height: 160px; /* Minimum code area height */
     position: relative;
 }
 
 .code-line {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.5rem; /* Gap between code lines */
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.5rem; /* Gap between code elements */
 }
 
 .code-indent {
-    margin-left: 1rem;
+    margin-left: 1rem; /* Code indentation amount */
 }
 
 .code-symbol {
     color: var(--accent-cyan);
-    font-weight: 700;
+    font-weight: 700; /* Code symbol font weight */
 }
 
 .code-emoji {
-    font-size: 1.1em;
+    font-size: 1.1em; /* Emoji size relative to code text */
 }
 
 .code-text {
@@ -402,14 +420,14 @@ body {
 
 .code-feature {
     color: var(--accent-purple);
-    font-weight: 600;
+    font-weight: 600; /* Feature text font weight */
 }
 
 .code-cursor {
     color: var(--accent-cyan);
-    font-weight: 700;
-    animation: blink 1s infinite;
-    margin-top: 0.5rem;
+    font-weight: 700; /* Cursor font weight */
+    animation: blink 1s infinite; /* Cursor blink speed */
+    margin-top: 0.5rem; /* Space above cursor */
 }
 
 @keyframes blink {
@@ -417,14 +435,15 @@ body {
     51%, 100% { opacity: 0; }
 }
 
+/* Scroll indicator */
 .hero-scroll {
     position: absolute;
-    bottom: 2rem;
+    bottom: 2rem; /* Distance from bottom */
     left: 50%;
     transform: translateX(-50%);
     color: var(--text-muted);
-    font-size: 1.5rem;
-    animation: bounce 2s infinite;
+    font-size: 1.5rem; /* Scroll indicator size */
+    animation: bounce 2s infinite; /* Bounce animation speed */
     cursor: pointer;
     transition: color var(--transition);
 }
@@ -435,20 +454,20 @@ body {
 
 @keyframes bounce {
     0%, 20%, 53%, 80%, 100% { transform: translateX(-50%) translateY(0); }
-    40%, 43% { transform: translateX(-50%) translateY(-10px); }
-    70% { transform: translateX(-50%) translateY(-5px); }
+    40%, 43% { transform: translateX(-50%) translateY(-10px); } /* Bounce height */
+    70% { transform: translateX(-50%) translateY(-5px); } /* Bounce height */
 }
 
 /* Animation classes */
 .hero-animate {
     opacity: 0;
-    animation: fadeInUp 0.8s ease forwards;
+    animation: fadeInUp 0.8s ease forwards; /* Fade in animation duration */
 }
 
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(30px); /* Initial offset distance */
     }
     to {
         opacity: 1;
@@ -460,10 +479,10 @@ body {
 .container {
     max-width: 1200px;
     margin: 2rem auto;
-    background: var(--card-bg-light);
+    background: var(--card-bg);
     border-radius: var(--radius-2xl);
     box-shadow: var(--shadow-lg);
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--border-color);
     overflow: hidden;
     position: relative;
 }
@@ -480,11 +499,11 @@ body {
 }
 
 .generator-header {
-    background: linear-gradient(135deg, var(--card-bg-light) 0%, #f8fafc 100%);
-    color: var(--text-dark);
+    background: linear-gradient(135deg, var(--dark-bg-secondary) 0%, var(--dark-bg-tertiary) 100%);
+    color: var(--text-primary);
     padding: 2rem;
     text-align: center;
-    border-bottom: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .generator-header h2 {
@@ -505,8 +524,8 @@ body {
 .generator-header p {
     margin: 0;
     font-size: 1rem;
-    color: var(--text-muted);
-    opacity: 0.8;
+    color: var(--text-secondary);
+    opacity: 0.9;
 }
 
 main {
@@ -518,10 +537,10 @@ main {
 
 /* Card Styles for Generator */
 .card {
-    background: var(--card-bg-light);
+    background: var(--card-bg);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-md);
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--border-color);
     overflow: hidden;
     transition: all var(--transition);
     position: relative;
@@ -551,8 +570,8 @@ main {
 
 .card-header {
     padding: 1.5rem 2rem;
-    border-bottom: 1px solid var(--border-light);
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(135deg, var(--dark-bg-secondary) 0%, var(--dark-bg-tertiary) 100%);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -562,7 +581,7 @@ main {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 700;
-    color: var(--text-dark);
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -590,7 +609,7 @@ main {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
-    color: var(--dark-text);
+    color: var(--text-primary);
     font-size: 0.9rem;
 }
 
@@ -613,10 +632,10 @@ main {
     font-size: 0.95rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
-    background-color: white;
+    background-color: var(--dark-bg-secondary);
     transition: all var(--transition-fast);
     outline: none;
-    color: var(--dark-text);
+    color: var(--text-primary);
     font-family: inherit;
     height: 2.75rem;
 }
@@ -625,7 +644,7 @@ main {
 .form-group input[type="text"]:focus,
 .form-group select:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px var(--primary-light);
+    box-shadow: 0 0 0 2px rgba(0, 217, 255, 0.2);
 }
 
 .input-wrapper .paste-btn {
@@ -634,7 +653,7 @@ main {
     background: none;
     border: none;
     padding: 0.5rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all var(--transition-fast);
 }
@@ -646,7 +665,7 @@ main {
 .form-hint {
     display: block;
     margin-top: 0.4rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     font-size: 0.8rem;
 }
 
@@ -704,36 +723,73 @@ button i {
 }
 
 .btn-primary {
-    background-color: var(--primary-color);
+    background: var(--gradient-primary);
     color: white;
+    border: none;
+    box-shadow: var(--shadow-neon);
 }
 
 .btn-primary:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    background: var(--gradient-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 0 40px rgba(0, 217, 255, 0.6), var(--shadow-lg);
+    filter: brightness(1.1);
 }
 
 .btn-secondary {
-    background-color: var(--secondary-color);
-    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border: 2px solid rgba(0, 217, 255, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+    background: rgba(0, 217, 255, 0.1);
+    border-color: var(--accent-cyan);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 #generate-btn {
-    padding: 0.85rem 1.75rem;
-    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
     width: 100%;
     margin-top: 1.25rem;
-    background-image: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
-    box-shadow: var(--shadow);
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition);
+    box-shadow: var(--shadow-neon);
     position: relative;
     overflow: hidden;
-    border-radius: var(--radius);
+}
+
+#generate-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.6s;
 }
 
 #generate-btn:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 0 40px rgba(0, 217, 255, 0.6), var(--shadow-lg);
+    filter: brightness(1.1);
+}
+
+#generate-btn:hover::before {
+    left: 100%;
 }
 
 /* Modern Tech Progress Section */
@@ -743,7 +799,7 @@ button i {
     align-items: center;
     margin: 0;
     padding: 2rem 1.5rem;
-    background: linear-gradient(135deg, var(--light-bg) 0%, #e2e8f0 100%);
+    background: linear-gradient(135deg, var(--dark-bg-secondary) 0%, var(--dark-bg-tertiary) 100%);
     position: relative;
     border-bottom: 1px solid var(--border-color);
     overflow: hidden;
@@ -788,11 +844,11 @@ button i {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    background: linear-gradient(145deg, var(--dark-bg-secondary) 0%, var(--dark-bg-tertiary) 100%);
     border: 2px solid var(--border-color);
     transition: all var(--transition);
     box-shadow: var(--shadow);
-    color: var(--text-muted);
+    color: var(--text-secondary);
     position: relative;
     overflow: hidden;
 }
@@ -829,7 +885,7 @@ button i {
     font-size: 0.9rem;
     font-weight: 600;
     margin-top: 0.5rem;
-    color: var(--dark-text);
+    color: var(--text-primary);
     transition: color var(--transition);
 }
 
@@ -875,7 +931,7 @@ button i {
     display: block;
     margin-bottom: 0.75rem;
     font-weight: 600;
-    color: var(--dark-text);
+    color: var(--text-primary);
     font-size: 0.95rem;
     display: flex;
     align-items: center;
@@ -902,10 +958,10 @@ button i {
     font-size: 1rem;
     border: 2px solid var(--border-color);
     border-radius: var(--radius-md);
-    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    background: linear-gradient(145deg, var(--dark-bg-secondary) 0%, var(--dark-bg-tertiary) 100%);
     transition: all var(--transition);
     outline: none;
-    color: var(--dark-text);
+    color: var(--text-primary);
     font-family: inherit;
     height: 3.25rem;
     position: relative;
@@ -917,7 +973,7 @@ button i {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.15), var(--shadow-neon);
     transform: translateY(-1px);
-    background: #ffffff;
+    background: var(--dark-bg-secondary);
 }
 
 .form-group select {
@@ -936,7 +992,7 @@ button i {
     background: none;
     border: none;
     padding: 0.75rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all var(--transition);
     border-radius: var(--radius);
@@ -947,14 +1003,14 @@ button i {
 
 .input-wrapper .paste-btn:hover {
     color: var(--primary-color);
-    background: var(--primary-light);
+    background: rgba(0, 217, 255, 0.1);
     transform: scale(1.1);
 }
 
 .form-hint {
     display: block;
     margin-top: 0.5rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     font-size: 0.875rem;
     line-height: 1.4;
 }
@@ -963,10 +1019,10 @@ button i {
     display: block;
     margin-top: 0.75rem;
     font-size: 0.875rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     line-height: 1.5;
     padding: 0.75rem;
-    background: linear-gradient(135deg, var(--light-bg) 0%, #e2e8f0 100%);
+    background: linear-gradient(135deg, var(--dark-bg-secondary) 0%, var(--dark-bg-tertiary) 100%);
     border-radius: var(--radius);
     border-left: 3px solid var(--primary-color);
 }
@@ -1149,9 +1205,9 @@ button i {
 .btn-outline-small {
     padding: 0.75rem 1.25rem;
     font-size: 0.9rem;
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+    background: linear-gradient(145deg, rgba(42, 42, 58, 0.95) 0%, rgba(26, 26, 36, 0.95) 100%);
     border: 1px solid var(--border-color);
-    color: var(--dark-text);
+    color: var(--text-primary);
     border-radius: var(--radius);
     transition: all var(--transition);
     display: inline-flex;
@@ -1205,7 +1261,7 @@ button i {
 
 /* Modern Tech Analysis Section */
 .analysis-box {
-    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    background: linear-gradient(145deg, var(--dark-bg-secondary) 0%, var(--dark-bg-tertiary) 100%);
     padding: 0;
     overflow: hidden;
     border-radius: var(--radius-xl);
@@ -1220,7 +1276,7 @@ button i {
 }
 
 .analysis-item {
-    background: linear-gradient(135deg, var(--light-bg) 0%, #e2e8f0 100%);
+    background: linear-gradient(135deg, var(--dark-bg-secondary) 0%, var(--dark-bg-tertiary) 100%);
     padding: 1.75rem;
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-color);
@@ -1245,12 +1301,12 @@ button i {
     transform: translateY(-4px) scale(1.02);
     box-shadow: var(--shadow-lg);
     border-color: var(--primary-color);
-    background: linear-gradient(135deg, #ffffff 0%, var(--primary-light) 100%);
+    background: linear-gradient(135deg, var(--dark-bg-tertiary) 0%, rgba(0, 217, 255, 0.1) 100%);
 }
 
 .analysis-item h4 {
     margin: 0 0 1rem 0;
-    color: var(--dark-text);
+    color: var(--text-primary);
     font-size: 1.1rem;
     font-weight: 700;
     display: flex;
@@ -1285,7 +1341,7 @@ button i {
     border-radius: var(--radius-xl);
     overflow: hidden;
     margin-top: 1.5rem;
-    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    background: linear-gradient(145deg, var(--dark-bg-secondary) 0%, var(--dark-bg-tertiary) 100%);
     box-shadow: var(--shadow-lg);
     transition: all var(--transition);
 }
@@ -1339,7 +1395,7 @@ button i {
     max-height: 650px;
     overflow-y: auto;
     line-height: 1.7;
-    background: white;
+    background: var(--dark-bg);
     position: relative;
 }
 
@@ -1348,7 +1404,7 @@ button i {
 }
 
 .preview-content::-webkit-scrollbar-track {
-    background: var(--light-bg);
+    background: var(--dark-bg-secondary);
     border-radius: 4px;
 }
 
@@ -1545,7 +1601,7 @@ button i {
 
 .analysis-item h4 {
     margin: 0 0 0.5rem 0;
-    color: var(--dark-text);
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -1715,7 +1771,7 @@ button i {
 
 /* Enhanced UI Elements - 2025 Edition */
 .card {
-    background: white;
+    background: var(--card-bg);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border-color);
@@ -1741,7 +1797,7 @@ button i {
 .card-header h2, .card-header h3 {
     margin: 0;
     font-size: 1.25rem;
-    color: var(--dark-text);
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     gap: var(--space-xs);
@@ -1825,11 +1881,11 @@ button i {
 .btn-outline {
     background: transparent;
     border: 1px solid var(--border-color);
-    color: var(--dark-text);
+    color: var(--text-primary);
 }
 
 .btn-outline:hover {
-    background: var(--light-bg);
+    background: var(--dark-bg-secondary);
     border-color: var(--secondary-color);
 }
 
@@ -1845,7 +1901,7 @@ button i {
     font-size: 0.8rem;
     background: transparent;
     border: 1px solid var(--border-color);
-    color: var(--dark-text);
+    color: var(--text-primary);
     border-radius: var(--radius-sm);
     transition: all var(--transition-fast);
     display: flex;
@@ -1885,7 +1941,7 @@ button i {
 .toast {
     padding: var(--space-md) var(--space-lg);
     border-radius: var(--radius);
-    background: white;
+    background: var(--card-bg);
     border-left: 4px solid var(--primary-color);
     box-shadow: var(--shadow-lg);
     animation: slideIn 0.3s ease forwards;
@@ -2173,6 +2229,11 @@ button i {
 }
 
 @media (max-width: 768px) {
+    .hero-section {
+        min-height: 80vh;
+        padding: 2rem 0 3rem 0;
+    }
+    
     .hero-content {
         padding: 0 1.5rem;
         gap: 2rem;
@@ -2237,7 +2298,8 @@ button i {
 
 @media (max-width: 480px) {
     .hero-section {
-        padding: 2rem 0;
+        padding: 2rem 0 2rem 0;
+        min-height: 75vh;
     }
     
     .hero-content {
