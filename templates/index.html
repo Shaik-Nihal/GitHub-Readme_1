@@ -7,14 +7,117 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style-enhancements.css') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><i class="fab fa-github"></i> AI GitHub README Generator</h1>
-            <p>Generate professional README files for your GitHub repositories using multiple AI providers. Choose from OpenRouter (free models), OpenAI, Anthropic Claude, or Google AI.</p>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-background"></div>
+        <div class="hero-particles"></div>
+        
+        <div class="hero-content">
+            <div class="hero-left">
+                <div class="hero-badge">
+                    <i class="fas fa-robot"></i>
+                    Next-Gen AI Documentation
+                </div>
+                
+                <h1 class="hero-title">
+                    <i class="fab fa-github"></i>
+                    AI-Powered<br>
+                    <span class="gradient-text">README</span> Generator
+                </h1>
+                
+                <p class="hero-description">
+                    Transform your repositories with cutting-edge artificial intelligence. 
+                    Generate professional, comprehensive documentation in seconds 
+                    with our advanced AI models including GPT-4, Claude, and more.
+                </p>
+                
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">99.9%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">&lt;30s</div>
+                        <div class="stat-label">Generation</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">5+</div>
+                        <div class="stat-label">AI Models</div>
+                    </div>
+                </div>
+                
+                <div class="hero-buttons">
+                    <button class="btn-hero-primary" onclick="scrollToGenerator()">
+                        <i class="fas fa-rocket"></i>
+                        Launch Generator
+                    </button>
+                    <button class="btn-hero-secondary">
+                        <i class="fas fa-play"></i>
+                        View Demo
+                    </button>
+                </div>
+            </div>
+            
+            <div class="hero-right">
+                <div class="code-window">
+                    <div class="window-header">
+                        <div class="window-controls">
+                            <span class="control red"></span>
+                            <span class="control yellow"></span>
+                            <span class="control green"></span>
+                        </div>
+                        <div class="window-title">README.md - AI Generated</div>
+                    </div>
+                    <div class="code-content">
+                        <div class="code-line">
+                            <span class="code-symbol">#</span> 
+                            <span class="code-emoji">🚀</span> 
+                            <span class="code-text">Revolutionary AI Project</span>
+                        </div>
+                        <div class="code-line">
+                            <span class="code-text">Next-generation machine learning platform</span>
+                        </div>
+                        <div class="code-line">
+                            <span class="code-symbol">##</span> 
+                            <span class="code-emoji">🔮</span> 
+                            <span class="code-feature">AI Features</span>
+                        </div>
+                        <div class="code-line code-indent">
+                            <span class="code-symbol">-</span> 
+                            <span class="code-text">Neural network optimization</span>
+                        </div>
+                        <div class="code-line code-indent">
+                            <span class="code-symbol">-</span> 
+                            <span class="code-text">Real-time data processing</span>
+                        </div>
+                        <div class="code-line code-indent">
+                            <span class="code-symbol">-</span> 
+                            <span class="code-text">Advanced pattern recognition</span>
+                        </div>
+                        <div class="code-line code-indent">
+                            <span class="code-symbol">-</span> 
+                            <span class="code-text">Quantum computing ready</span>
+                        </div>
+                        <div class="code-cursor">|</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="hero-scroll">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </section>
+    
+    <!-- Main Generator Section -->
+    <div class="container" id="generator-section">
+        <header class="generator-header">
+            <h2><i class="fab fa-github"></i> Generate Your README</h2>
+            <p>Choose your AI provider and repository to get started</p>
         </header>
 
         <main>
@@ -175,5 +278,31 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script src="{{ url_for('static', filename='script-enhanced.js') }}"></script>
+    
+    <script>
+        function scrollToGenerator() {
+            document.getElementById('generator-section').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        }
+        
+        // Hero animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate hero elements on load
+            const heroElements = document.querySelectorAll('.hero-left > *');
+            heroElements.forEach((el, index) => {
+                el.style.animationDelay = `${index * 0.2}s`;
+                el.classList.add('hero-animate');
+            });
+            
+            // Cursor blinking animation
+            const cursor = document.querySelector('.code-cursor');
+            if (cursor) {
+                setInterval(() => {
+                    cursor.style.opacity = cursor.style.opacity === '0' ? '1' : '0';
+                }, 1000);
+            }
+        });
+    </script>
 </body>
 </html>

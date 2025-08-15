@@ -29,3 +29,11 @@ Thumbs.db
 build/
 dist/
 *.egg-info/
+
+# Vercel
+.vercel
+
+# Logs
+*.log
+
+.vercel
