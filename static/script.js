@@ -15,8 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorMessageDiv = document.getElementById('error-message');
     const readmeOutput = document.getElementById('readme-output');
     const finalizeSection = document.getElementById('finalize-section');
+    const enhancementSection = document.getElementById('enhancement-section');
     const copyBtn = document.getElementById('copy-btn');
     const downloadBtn = document.getElementById('download-btn');
+    const readmeHeaderActions = document.getElementById('readme-header-actions');
 
     let analysisData = null;
     let finalReadmeContent = '';
@@ -96,6 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
         analysisSection.classList.add('hidden');
         resultsSection.classList.add('hidden');
         finalizeSection.classList.add('hidden');
+        enhancementSection.classList.add('hidden');
+        readmeHeaderActions.classList.add('hidden');
         errorMessageDiv.classList.add('hidden');
         progressSection.classList.remove('hidden');
         updateProgress(0);
@@ -143,7 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
             finalReadmeContent = generateResult.readme;
             renderReadme(finalReadmeContent);
             updateProgress(2);
-            finalizeSection.classList.remove('hidden');
+            enhancementSection.classList.remove('hidden');
+            readmeHeaderActions.classList.remove('hidden');
 
         } catch (error) {
             console.error('Error during generation process:', error);

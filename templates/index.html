@@ -175,16 +175,28 @@
                 <div class="card-body">
                     <div class="progress-container">
                         <div class="progress-step active">
-                            <i class="fas fa-search"></i>
+                            <div class="progress-icon">
+                                <i class="fab fa-github"></i>
+                                <i class="fas fa-search progress-overlay"></i>
+                            </div>
                             <span>Analyzing Repository</span>
+                            <small>Scanning files & structure</small>
                         </div>
                         <div class="progress-step">
-                            <i class="fas fa-robot"></i>
-                            <span>Generating README</span>
+                            <div class="progress-icon">
+                                <i class="fas fa-brain"></i>
+                                <i class="fas fa-magic progress-overlay"></i>
+                            </div>
+                            <span>AI Processing</span>
+                            <small>Generating content with AI</small>
                         </div>
                         <div class="progress-step">
-                            <i class="fas fa-check"></i>
-                            <span>Complete</span>
+                            <div class="progress-icon">
+                                <i class="fas fa-file-code"></i>
+                                <i class="fas fa-check progress-overlay"></i>
+                            </div>
+                            <span>Finalizing</span>
+                            <small>Completing README.md</small>
                         </div>
                     </div>
                     <div class="progress-bar">
@@ -205,7 +217,19 @@
             <div id="results-section" class="hidden">
                 <div class="card">
                     <div class="card-header">
-                        <h3><i class="fas fa-file-alt"></i> Generated README</h3>
+                        <div class="header-left">
+                            <h3><i class="fas fa-file-alt"></i> Generated README</h3>
+                        </div>
+                        <div class="header-actions hidden" id="readme-header-actions">
+                            <button id="copy-btn" class="btn-header-action copy">
+                                <i class="fas fa-copy"></i>
+                                <span>Copy</span>
+                            </button>
+                            <button id="download-btn" class="btn-header-action download">
+                                <i class="fas fa-download"></i>
+                                <span>Download</span>
+                            </button>
+                        </div>
                         <div id="loading-spinner" class="spinner hidden"></div>
                     </div>
                     <div class="card-body">
@@ -222,38 +246,121 @@
                 </div>
                 
                 <div id="finalize-section" class="card hidden">
-                    <div class="card-header">
-                        <h3><i class="fas fa-tools"></i> README Options</h3>
+                    <!-- This section is now empty - regeneration moved to separate section -->
+                </div>
+                
+                <!-- AI-Powered Section Enhancement - Separate Section -->
+                <div id="enhancement-section" class="enhancement-container hidden">
+                    <div class="enhancement-header">
+                        <div class="header-content">
+                            <div class="header-icon">
+                                <i class="fas fa-magic"></i>
+                            </div>
+                            <div class="header-text">
+                                <h3>AI-Powered Section Enhancement</h3>
+                                <p>Select any section below to regenerate with advanced AI</p>
+                            </div>
+                        </div>
+                        <div class="ai-badge">
+                            <i class="fas fa-brain"></i>
+                            <span>GPT-4 Ready</span>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="button-group">
-                            <button id="copy-btn" class="btn btn-primary">
-                                <i class="fas fa-copy"></i> Copy README
-                            </button>
-                            <button id="download-btn" class="btn btn-primary">
-                                <i class="fas fa-download"></i> Download README.md
-                            </button>
+                    
+                    <div class="enhancement-grid">
+                        <div class="section-card" data-section="description">
+                            <div class="card-header">
+                                <div class="section-icon-wrapper">
+                                    <i class="fas fa-align-left"></i>
+                                </div>
+                                <h5>Description</h5>
+                                <div class="regenerate-btn">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p>Enhance project overview and purpose</p>
+                                <div class="progress-indicator"></div>
+                            </div>
                         </div>
                         
-                        <div class="section-regenerate">
-                            <h4>Improve Specific Sections</h4>
-                            <p class="section-hint">Click on a section to regenerate its content with AI</p>
-                            <div class="section-buttons">
-                                <button class="btn-outline-small" data-section="description">
-                                    <i class="fas fa-sync-alt"></i> Description
-                                </button>
-                                <button class="btn-outline-small" data-section="features">
-                                    <i class="fas fa-sync-alt"></i> Features
-                                </button>
-                                <button class="btn-outline-small" data-section="installation">
-                                    <i class="fas fa-sync-alt"></i> Installation
-                                </button>
-                                <button class="btn-outline-small" data-section="usage">
-                                    <i class="fas fa-sync-alt"></i> Usage
-                                </button>
-                                <button class="btn-outline-small" data-section="contributing">
-                                    <i class="fas fa-sync-alt"></i> Contributing
-                                </button>
+                        <div class="section-card" data-section="features">
+                            <div class="card-header">
+                                <div class="section-icon-wrapper">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <h5>Features</h5>
+                                <div class="regenerate-btn">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p>Highlight key functionalities</p>
+                                <div class="progress-indicator"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-card" data-section="installation">
+                            <div class="card-header">
+                                <div class="section-icon-wrapper">
+                                    <i class="fas fa-download"></i>
+                                </div>
+                                <h5>Installation</h5>
+                                <div class="regenerate-btn">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p>Improve setup instructions</p>
+                                <div class="progress-indicator"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-card" data-section="usage">
+                            <div class="card-header">
+                                <div class="section-icon-wrapper">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                                <h5>Usage</h5>
+                                <div class="regenerate-btn">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p>Generate better usage examples</p>
+                                <div class="progress-indicator"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-card" data-section="contributing">
+                            <div class="card-header">
+                                <div class="section-icon-wrapper">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <h5>Contributing</h5>
+                                <div class="regenerate-btn">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p>Enhance contribution guidelines</p>
+                                <div class="progress-indicator"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-card" data-section="license">
+                            <div class="card-header">
+                                <div class="section-icon-wrapper">
+                                    <i class="fas fa-balance-scale"></i>
+                                </div>
+                                <h5>License</h5>
+                                <div class="regenerate-btn">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p>Update license information</p>
+                                <div class="progress-indicator"></div>
                             </div>
                         </div>
                     </div>
