@@ -107,7 +107,7 @@ def generate_full():
         elif ai_provider == 'anthropic':
             api_key = os.getenv('ANTHROPIC_API_KEY')
         elif ai_provider == 'google':
-            api_key = os.getenv('GOOGLE_API_KEY')
+            api_key = os.getenv('GOOGLE_AI_API_KEY')
         else:
             api_key = os.getenv('OPENROUTER_API_KEY') or os.getenv('OPENAI_API_KEY')
         
@@ -194,7 +194,7 @@ def regenerate_section():
         elif ai_provider == 'anthropic':
             api_key = os.getenv('ANTHROPIC_API_KEY')
         elif ai_provider == 'google':
-            api_key = os.getenv('GOOGLE_API_KEY')
+            api_key = os.getenv('GOOGLE_AI_API_KEY')
         else:
             api_key = os.getenv('OPENROUTER_API_KEY') or os.getenv('OPENAI_API_KEY')
         
@@ -203,18 +203,19 @@ def regenerate_section():
             app.logger.error("Missing required parameter: section_heading")
             return jsonify({"error": "section_heading is required."}), 400
             
+        # Make section_content optional - provide default if not provided
         if not section_content:
-            app.logger.error("Missing required parameter: section_content")
-            return jsonify({"error": "section_content is required."}), 400
+            app.logger.warning("No section_content provided, using default")
+            section_content = f"## {section_heading}\n\nPlease generate content for the {section_heading} section based on the repository analysis."
             
         if not api_key:
             app.logger.error(f"Missing API key for provider: {ai_provider}")
             return jsonify({"error": f"API key for {ai_provider} is not configured in .env file."}), 400
             
-        # Validate that the global context is available
+        # Check if the global context is available, but don't require it
         if not LATEST_FULL_PROMPT_CONTEXT_OVERVIEW:
-            app.logger.error("No context available for regeneration. Generate a full README first.")
-            return jsonify({"error": "Please generate a full README first before regenerating sections."}), 400
+            app.logger.warning("No context available for regeneration. Using basic regeneration without full context.")
+            # Continue with regeneration using just the provided data
 
         config = load_config()
         # Add AI provider and model to config
@@ -299,4 +300,5 @@ IMPORTANT: Return ONLY the content that should go under this section heading, wi
         return jsonify({"error": "An unexpected server error occurred during section regeneration."}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=False)
+    app.run(host='0.0.0.0', port=5001, debug=True)
+    
