@@ -2,7 +2,7 @@ import logging
 import time
 import os
 import re
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from readme_generator import (
     analyze_repo,
     generate_readme_from_analysis,
@@ -35,6 +35,43 @@ CACHE_EXPIRATION_SECONDS = 600  # 10 minutes
 def index():
     """Renders the main page with the input form."""
     return render_template('index.html')
+
+# --- SEO helpers ---
+@app.context_processor
+def inject_seo_defaults():
+    return {
+        "seo_title": "AI GitHub README Generator",
+        "seo_description": "Generate, refine, and preview professional GitHub READMEs with AI.",
+        "seo_site_name": "AI GitHub README Generator",
+        "canonical_base": request.url_root.rstrip('/')
+    }
+
+@app.route('/robots.txt')
+def robots_txt():
+    # Serve robots.txt from /static if present, otherwise allow all
+    static_path = app.static_folder or 'static'
+    try:
+        return send_from_directory(static_path, 'robots.txt', mimetype='text/plain')
+    except Exception:
+        return ("User-agent: *\nAllow: /\n", 200, {"Content-Type": "text/plain"})
+
+@app.route('/sitemap.xml')
+def sitemap_xml():
+    # Serve sitemap.xml from /static if present, otherwise provide minimal sitemap
+    static_path = app.static_folder or 'static'
+    try:
+        return send_from_directory(static_path, 'sitemap.xml', mimetype='application/xml')
+    except Exception:
+        base = request.url_root.rstrip('/')
+        xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>{base}/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+</urlset>"""
+        return (xml, 200, {"Content-Type": "application/xml"})
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze():

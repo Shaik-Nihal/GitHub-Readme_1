@@ -368,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('❌ Enhancement section element not found in renderReadme');
             // Try to add a fallback notification
             if (typeof showToast === 'function') {
-                showToast('Error: Enhancement section not found. Try using the "Force show section" button.', 'error');
+                showToast('Enhancement section not found on this page.', 'error');
             }
         }
     }
@@ -499,41 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('✅ Tab initialization complete');
     }
 
-    // Function to ensure regeneration section is properly shown
-    // Making it globally accessible
-    window.forceShowRegenerationSection = function() {
-        console.log('🔄 Force showing regeneration section...');
-        const section = document.getElementById('enhancement-section');
-        
-        if (section) {
-            // Remove hidden class and force display
-            section.classList.remove('hidden');
-            section.style.display = 'block';
-            section.style.visibility = 'visible';
-            section.style.opacity = '1';
-            
-            // Initialize the regeneration functionality
-            initializeSectionRegeneration();
-            
-            // Also show toast for user feedback
-            if (typeof showToast === 'function') {
-                showToast('Regeneration section visibility forced!', 'success');
-            }
-            
-            // Scroll to the section
-            setTimeout(() => {
-                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                console.log('Scrolled to enhancement section');
-            }, 500);
-            
-            console.log('✅ Force show completed successfully');
-            return true;
-        }
-        
-        console.error('Could not find regeneration section element');
-        alert('Error: Could not find regeneration section element!');
-        return false;
-    }
+    // Removed: window.forceShowRegenerationSection dev helper
 
     // Section regeneration functionality
     
@@ -1021,7 +987,8 @@ function downloadReadme() {
 }
 
 // Global function for testing tabs rendering and fixing preview issues
-window.testTabsRendering = function() {
+// Dev helper removed from global scope
+const _testTabsRendering = function() {
     console.log('🧪 Testing tabs rendering...');
     
     // Test content for README
@@ -1180,5 +1147,27 @@ document.addEventListener('DOMContentLoaded', function() {
     if (downloadBtn) {
         downloadBtn.addEventListener('click', downloadReadme);
         console.log('✅ Download button event listener added');
+    }
+});
+
+// Final safety cleanup: remove any legacy debug UI if present in a stale template
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        // Remove panels with class 'form-info'
+        document.querySelectorAll('.form-info').forEach((el) => {
+            console.log('🧹 Removing legacy debug panel');
+            el.remove();
+        });
+        // Strip any legacy debug onclicks that may remain
+        const legacyHandlers = ['forceShowRegenerationSection', 'testTabsRendering', 'forceShowPreview', 'testRegeneration'];
+        document.querySelectorAll('[onclick]').forEach((el) => {
+            const val = String(el.getAttribute('onclick') || '');
+            if (legacyHandlers.some((h) => val.includes(h))) {
+                console.log('🧹 Removing legacy onclick from element', el);
+                el.removeAttribute('onclick');
+            }
+        });
+    } catch (e) {
+        console.warn('Legacy debug cleanup failed', e);
     }
 });
