@@ -210,45 +210,128 @@ document.addEventListener('DOMContentLoaded', () => {
         analysisOutput.innerHTML = html;
     }
 
+    // Create a global function for markdown-to-HTML conversion
+    function convertMarkdownToHtml(markdown) {
+        if (!markdown) return '';
+        console.log('Converting markdown to HTML...');
+        try {
+            // 1) Extract fenced code blocks to placeholders so subsequent rules don't touch them
+            const codeBlocks = [];
+            let html = String(markdown).replace(/```(\w+)?\n([\s\S]*?)```/gm, (m, lang, code) => {
+                const safe = String(code).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const cls = lang ? `language-${lang}` : 'language-plaintext';
+                const block = `<pre><code class="${cls}">${safe}</code></pre>`;
+                const token = `§§CODEBLOCK_${codeBlocks.length}§§`;
+                codeBlocks.push(block);
+                return token;
+            });
+
+            // 2) Setext-style headings (===, ---) before ATX headers
+            html = html
+                .replace(/^(.*)\n=+\s*$/gm, '<h1>$1</h1>')
+                .replace(/^(.*)\n-+\s*$/gm, '<h2>$1</h2>');
+
+            // 3) ATX headers with optional leading spaces
+            html = html
+                .replace(/^\s*######\s*(.+)$/gm, '<h6>$1</h6>')
+                .replace(/^\s*#####\s*(.+)$/gm, '<h5>$1</h5>')
+                .replace(/^\s*####\s*(.+)$/gm, '<h4>$1</h4>')
+                .replace(/^\s*###\s*(.+)$/gm, '<h3>$1</h3>')
+                .replace(/^\s*##\s*(.+)$/gm, '<h2>$1</h2>')
+                .replace(/^\s*#\s*(.+)$/gm, '<h1>$1</h1>');
+
+            // 4) Inline code first to avoid bold/italic touching backticks content
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+            // 5) Bold and italic
+            html = html
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+            // 6) Links
+            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+            // 7) Blockquotes
+            html = html.replace(/^\s*>\s?(.+)$/gm, '<blockquote>$1</blockquote>');
+
+            // 8) Basic list items
+            html = html
+                .replace(/^\s*[-*]\s+(.+)$/gm, '<li>$1</li>')
+                .replace(/^\s*(\d+)\.\s+(.+)$/gm, '<li>$2</li>');
+
+            // 9) Group consecutive <li> blocks into <ul> (simple heuristic)
+            html = html.replace(/(?:\s*<li>.*<\/li>\s*)+/gm, match => `<ul>${match}</ul>`);
+
+            // 10) Paragraph wrapping for remaining text blocks
+            const blocks = html.split(/\n{2,}/).map(block => {
+                const t = block.trim();
+                if (!t) return '';
+                if (/^<(h[1-6]|pre|ul|ol|li|blockquote|hr|table|div|code)/i.test(t)) return t;
+                return `<p>${t.replace(/\n/g, '<br>')}</p>`;
+            });
+
+            html = blocks.join('\n');
+
+            // 11) Restore code blocks
+            html = html.replace(/§§CODEBLOCK_(\d+)§§/g, (_, i) => codeBlocks[Number(i)] || '');
+
+            return html;
+        } catch (error) {
+            console.error('Error converting markdown to HTML:', error);
+            return '<p>Error rendering markdown preview.</p>';
+        }
+    }
+    
     function renderReadme(markdown) {
         // Store the final README content globally
         finalReadmeContent = markdown;
         console.log('📄 README content stored:', finalReadmeContent ? 'Success' : 'Failed');
         
-        // Convert basic markdown to HTML for preview
-        let html = markdown
-            .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
-            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-            .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/gim, '<em>$1</em>')
-            .replace(/```([\s\S]*?)```/gim, '<pre><code>$1</code></pre>')
-            .replace(/`([^`]*?)`/gim, '<code>$1</code>')
-            .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank">$1</a>')
-            .replace(/^\* (.+$)/gim, '<li>$1</li>')
-            .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-            .replace(/^\d+\. (.+$)/gim, '<li>$1</li>')
-            .replace(/^> (.+$)/gim, '<blockquote>$1</blockquote>')
-            .replace(/\n/gim, '<br>');
-
-        // Clean up nested lists
-        html = html.replace(/<\/li><br><li>/gim, '</li><li>');
-        html = html.replace(/<ul><br>/gim, '<ul>');
-        html = html.replace(/<br><\/ul>/gim, '</ul>');
+    // HTML conversion for preview (no extra <p> wrapper)
+    let previewHtml = '<div class="markdown-preview">' + convertMarkdownToHtml(markdown) + '</div>';
+        
+        console.log('Preview HTML generated');
 
         // Populate the markdown source tab
         const readmeOutput = document.getElementById('readme-output');
         if (readmeOutput) {
-            readmeOutput.textContent = markdown;
+            // Use innerText for the source tab - this is crucial for proper display
+            readmeOutput.innerText = markdown;
+            
+            // Force pre formatting for better visibility
+            readmeOutput.style.whiteSpace = "pre-wrap";
+            readmeOutput.style.fontFamily = "monospace";
             console.log('✅ Markdown source populated');
         }
 
         // Populate the HTML preview tab
         const readmePreview = document.getElementById('readme-preview');
         if (readmePreview) {
-            readmePreview.innerHTML = html;
+            // Clear any existing content first
+            readmePreview.innerHTML = '';
+            
+            // Add the HTML directly
+            readmePreview.innerHTML = previewHtml;
+            
+            // Apply critical styles directly
+            readmePreview.style.whiteSpace = "normal";
+            readmePreview.style.fontFamily = "Inter, system-ui, -apple-system, sans-serif";
+            
             console.log('✅ HTML preview populated');
+            
+            // Apply syntax highlighting for code blocks
+            setTimeout(() => {
+                if (window.Prism) {
+                    try {
+                        Prism.highlightAllUnder(readmePreview);
+                        console.log('✅ Code syntax highlighting applied');
+                    } catch (e) {
+                        console.warn('⚠️ Could not apply syntax highlighting', e);
+                    }
+                }
+            }, 100);
+            
+            console.log('✅ HTML preview populated with enhanced formatting');
         }
 
         // Show the copy and download buttons
@@ -320,24 +403,100 @@ document.addEventListener('DOMContentLoaded', () => {
     function initializeTabs() {
         const tabs = document.querySelectorAll('.readme-tabs .tab');
         const tabContents = document.querySelectorAll('.tab-content');
-
+        
+        console.log('🔄 Initializing readme tabs');
+        
+        // Clear any existing event listeners and initialize fresh
         tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
+            // Create a clone to remove existing event listeners
+            const newTab = tab.cloneNode(true);
+            tab.parentNode.replaceChild(newTab, tab);
+            
+            newTab.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tabType = newTab.getAttribute('data-tab');
+                console.log(`📑 Tab clicked: ${tabType}`);
+                
                 // Remove active class from all tabs and contents
-                tabs.forEach(t => t.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-
+                document.querySelectorAll('.readme-tabs .tab').forEach(t => t.classList.remove('active'));
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    content.style.display = 'none'; // Force hide
+                });
+                
                 // Add active class to clicked tab
-                tab.classList.add('active');
-
-                // Show corresponding content
-                const tabType = tab.getAttribute('data-tab');
-                const targetContent = document.getElementById(`readme-${tabType}`);
+                newTab.classList.add('active');
+                
+                // Show corresponding content (map source -> readme-output, preview -> readme-preview)
+                const targetId = tabType === 'source' ? 'readme-output' : 'readme-preview';
+                const targetContent = document.getElementById(targetId);
                 if (targetContent) {
                     targetContent.classList.add('active');
+                    targetContent.style.display = 'block'; // Force show
+                    
+                    // Handle content based on tab type
+                    if (tabType === 'source' && finalReadmeContent) {
+                        const readmeOutput = document.getElementById('readme-output');
+                        if (readmeOutput) {
+                            console.log('🔍 Displaying markdown source');
+                            readmeOutput.textContent = finalReadmeContent;
+                            readmeOutput.style.whiteSpace = "pre-wrap";
+                            readmeOutput.style.fontFamily = "monospace";
+                        }
+                    } 
+                    else if (tabType === 'preview' && finalReadmeContent) {
+                        const readmePreview = document.getElementById('readme-preview');
+                        if (readmePreview) {
+                            console.log('🔄 Rendering HTML preview');
+                            
+                            // Clear existing content
+                            readmePreview.innerHTML = '';
+                            
+                            // Convert markdown to HTML
+                            const html = convertMarkdownToHtml(finalReadmeContent);
+                            
+                            // Create preview container with proper styling
+                            const previewContainer = document.createElement('div');
+                            previewContainer.className = 'markdown-preview';
+                            previewContainer.innerHTML = html;
+                            
+                            // Add to the preview area
+                            readmePreview.appendChild(previewContainer);
+                            
+                            // Apply syntax highlighting
+                            if (window.Prism) {
+                                try {
+                                    Prism.highlightAllUnder(readmePreview);
+                                    console.log('✨ Applied syntax highlighting');
+                                } catch (e) {
+                                    console.warn('⚠️ Could not apply syntax highlighting', e);
+                                }
+                            }
+                        }
+                    }
                 }
+                
+                console.log(`✅ Switched to ${tabType} tab`);
             });
         });
+        
+        // Set initial state based on current active tab, default to source
+    const activeTab = document.querySelector('.readme-tabs .tab.active') || document.querySelector('.readme-tabs .tab[data-tab="source"]');
+    const activeType = activeTab ? activeTab.getAttribute('data-tab') : 'source';
+        // Hide all contents first
+        tabContents.forEach(content => {
+            content.classList.remove('active');
+            content.style.display = 'none';
+        });
+        // Show the active content
+    const initialId = activeType === 'source' ? 'readme-output' : 'readme-preview';
+    const initialContent = document.getElementById(initialId);
+        if (initialContent) {
+            initialContent.classList.add('active');
+            initialContent.style.display = 'block';
+        }
+        
+        console.log('✅ Tab initialization complete');
     }
 
     // Function to ensure regeneration section is properly shown
@@ -815,3 +974,211 @@ function editSection(event) {
     // Placeholder for future section editing functionality
     alert('Section editing feature coming soon!');
 }
+
+// Function to copy README content to clipboard
+function copyCode() {
+    // Get the content from the global variable
+    const content = finalReadmeContent || '';
+    
+    if (!content) {
+        showToast('No content to copy!', 'error');
+        return;
+    }
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(content).then(() => {
+        showToast('README copied to clipboard!', 'success');
+        console.log('✅ README content copied to clipboard');
+    }).catch(err => {
+        console.error('❌ Could not copy README: ', err);
+        showToast('Failed to copy README', 'error');
+    });
+}
+
+// Function to download README content
+function downloadReadme() {
+    // Get the content from the global variable
+    const content = finalReadmeContent || '';
+    
+    if (!content) {
+        showToast('No content to download!', 'error');
+        return;
+    }
+    
+    // Create blob and download
+    const blob = new Blob([content], {type: 'text/markdown'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'README.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast('README downloaded successfully!', 'success');
+    console.log('✅ README downloaded');
+}
+
+// Global function for testing tabs rendering and fixing preview issues
+window.testTabsRendering = function() {
+    console.log('🧪 Testing tabs rendering...');
+    
+    // Test content for README
+    const testMarkdown = `# Test README
+    
+## Description
+This is a test README generated for testing tab rendering.
+
+## Features
+- Feature 1
+- Feature 2
+- Feature 3
+
+## Installation
+\`\`\`bash
+npm install
+\`\`\`
+
+## Usage
+\`\`\`javascript
+console.log('Hello World');
+\`\`\`
+
+## Contributing
+Please contribute to this project.
+
+## License
+MIT License`;
+
+    // Set the global content
+    finalReadmeContent = testMarkdown;
+    
+    console.log('🔧 Attempting to fix preview rendering issues...');
+    
+    // Use the new fix function if available
+    if (typeof window.fixPreviewTab === 'function') {
+        console.log('🚀 Using new preview tab fix functionality');
+        window.fixPreviewTab();
+        
+        // Show toast message
+        if (typeof showToast === 'function') {
+            showToast('Preview functionality has been fixed!', 'success');
+        }
+        
+        // Switch to preview tab after a short delay
+        setTimeout(() => {
+            const previewTab = document.querySelector('.tab[data-tab="preview"]');
+            if (previewTab) {
+                previewTab.click();
+            }
+        }, 1000);
+        
+        return "Preview tab fix applied! Check both tabs for correct rendering.";
+    }
+    
+    // Legacy fallback if the fix function isn't available
+    console.log('⚠️ Using legacy preview tab rendering');
+    
+    // Render in both tabs
+    const readmeOutput = document.getElementById('readme-output');
+    const readmePreview = document.getElementById('readme-preview');
+    
+    if (readmeOutput) {
+        readmeOutput.textContent = testMarkdown;
+        readmeOutput.style.whiteSpace = "pre-wrap";
+        readmeOutput.style.fontFamily = "monospace";
+        readmeOutput.style.display = "block";
+        console.log('✅ Source tab content set');
+    }
+    
+    if (readmePreview) {
+        // Use our new markdown conversion function
+        const html = convertMarkdownToHtml(testMarkdown);
+        
+        // Clear any existing content first
+        readmePreview.innerHTML = '';
+        
+        // Create a container with proper styling
+        const previewContainer = document.createElement('div');
+        previewContainer.className = 'markdown-preview';
+        previewContainer.innerHTML = html;
+        
+        // Add to the preview area
+        readmePreview.appendChild(previewContainer);
+        
+        // Apply syntax highlighting if available
+        if (window.Prism) {
+            try {
+                Prism.highlightAllUnder(readmePreview);
+            } catch (e) {
+                console.warn('⚠️ Could not apply syntax highlighting', e);
+            }
+        }
+        
+        console.log('✅ Preview tab content set with enhanced formatting');
+    }
+    
+    // Make sure both tab buttons are working
+    const tabs = document.querySelectorAll('.readme-tabs .tab');
+    tabs.forEach(tab => {
+        // Add a temporary highlight to show they're functional
+        tab.style.border = "2px solid var(--primary-color)";
+        setTimeout(() => {
+            tab.style.border = "";
+        }, 1000);
+    });
+    
+    // Show header actions
+    const readmeHeaderActions = document.getElementById('readme-header-actions');
+    if (readmeHeaderActions) {
+        readmeHeaderActions.classList.remove('hidden');
+    }
+    
+    // Add a button to switch between tabs
+    const sourceTab = document.querySelector('.tab[data-tab="source"]');
+    const previewTab = document.querySelector('.tab[data-tab="preview"]');
+    
+    if (sourceTab && previewTab) {
+        // First make sure source tab is active
+        sourceTab.click();
+        
+        // Then after a delay, show toast and toggle between tabs
+        setTimeout(() => {
+            if (typeof showToast === 'function') {
+                showToast('Tab rendering test active! Switching between tabs...', 'info');
+            }
+            
+            // Switch to preview
+            setTimeout(() => {
+                previewTab.click();
+                
+                // Then back to source
+                setTimeout(() => {
+                    sourceTab.click();
+                    if (typeof showToast === 'function') {
+                        showToast('Tab rendering test complete!', 'success');
+                    }
+                }, 1000);
+            }, 1000);
+        }, 500);
+    }
+    
+    return "Tab rendering test initiated. Check both tabs for content.";
+};
+
+// Add event listeners to copy and download buttons after DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    const copyBtn = document.getElementById('copy-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    
+    if (copyBtn) {
+        copyBtn.addEventListener('click', copyCode);
+        console.log('✅ Copy button event listener added');
+    }
+    
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', downloadReadme);
+        console.log('✅ Download button event listener added');
+    }
+});

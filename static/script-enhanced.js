@@ -743,4 +743,45 @@ document.addEventListener('DOMContentLoaded', () => {
         repoContents = null;
         finalReadmeContent = '';
     }
+    
+    // Helper function to force show the regeneration section
+    window.forceShowRegenerationSection = function() {
+        console.log('🔧 Force showing regeneration section...');
+        
+        // Show the results section first
+        resultsSection.classList.remove('hidden');
+        
+        // Show enhancement section
+        const enhancementSection = document.getElementById('enhancement-section');
+        if (enhancementSection) {
+            enhancementSection.classList.remove('hidden');
+            console.log('✅ Enhancement section shown');
+        } else {
+            console.error('❌ Enhancement section not found');
+        }
+        
+        // Create sample README content if needed
+        if (!window.finalReadmeContent) {
+            window.finalReadmeContent = `# Sample README\n\n## Description\nThis is a sample README to test the regeneration functionality.\n\n## Features\nSample features list\n\n## Installation\nSample installation instructions`;
+            
+            // Update source tab
+            if (readmeOutput) {
+                readmeOutput.textContent = window.finalReadmeContent;
+            }
+            console.log('📝 Created sample README content');
+        }
+        
+        // Show header actions for copy/download
+        const readmeHeaderActions = document.getElementById('readme-header-actions');
+        if (readmeHeaderActions) {
+            readmeHeaderActions.classList.remove('hidden');
+        }
+        
+        // Show toast message
+        if (typeof showToast === 'function') {
+            showToast('Regeneration section is now visible. Try clicking one of the section cards!', 'success');
+        }
+        
+        return "Regeneration section is now visible";
+    };
 });

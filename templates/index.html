@@ -9,6 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
 </head>
 <body>
     <!-- Hero Section -->
@@ -184,6 +185,22 @@
                             <span><strong>Fix regeneration section visibility:</strong> 
                                 <button type="button" onclick="forceShowRegenerationSection()" class="btn-link" style="color: #e44d26; background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 0.9rem; font-weight: bold;">
                                     Force show section
+                                </button>
+                            </span>
+                        </div>
+                        <div class="info-item" style="margin-top: 0.5rem;">
+                            <i class="fas fa-list-alt"></i>
+                            <span><strong>Test README tabs rendering:</strong> 
+                                <button type="button" onclick="testTabsRendering()" class="btn-link" style="color: #0077cc; background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 0.9rem; font-weight: bold;">
+                                    Test tabs display
+                                </button>
+                            </span>
+                        </div>
+                        <div class="info-item" style="margin-top: 0.5rem;">
+                            <i class="fas fa-eye"></i>
+                            <span><strong>Fix preview tab:</strong> 
+                                <button type="button" onclick="forceShowPreview()" class="btn-link" style="color: #4CAF50; background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 0.9rem; font-weight: bold;">
+                                    Show preview
                                 </button>
                             </span>
                         </div>
@@ -407,7 +424,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markdown.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script src="{{ url_for('static', filename='script-enhanced.js') }}"></script>
     
     <script>
         function scrollToGenerator() {
