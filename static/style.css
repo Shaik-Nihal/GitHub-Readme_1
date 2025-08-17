@@ -644,6 +644,28 @@ main {
     margin-bottom: 1rem;
 }
 
+.form-info {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(0, 217, 255, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+    border: 1px solid rgba(0, 217, 255, 0.2);
+    border-radius: 8px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.info-item i {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -1266,6 +1288,8 @@ button i {
     margin: 2rem 0;
     box-shadow: var(--shadow-xl);
     display: block !important; /* Force display when visible */
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .enhancement-container.hidden {
@@ -2484,6 +2508,248 @@ button i {
 #readme-output {
     min-height: 250px;
     position: relative;
+}
+
+/* README Tabs Styling */
+.readme-tabs {
+    display: flex;
+    background: var(--dark-bg-secondary);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+.readme-tabs .tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 1rem 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition);
+    font-weight: 600;
+    font-size: 0.95rem;
+    position: relative;
+    border-bottom: 2px solid transparent;
+}
+
+.readme-tabs .tab:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.readme-tabs .tab.active {
+    background: var(--gradient-tech);
+    color: white;
+    border-bottom-color: var(--primary-color);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.readme-tabs .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--primary-color);
+    box-shadow: 0 0 8px var(--primary-color);
+}
+
+/* README Content Styling */
+.readme-content {
+    background: var(--dark-bg);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    overflow: hidden;
+}
+
+.tab-content {
+    display: none;
+    padding: 2rem;
+    min-height: 400px;
+    max-height: 600px;
+    overflow-y: auto;
+    background: var(--dark-bg);
+    color: var(--text-primary);
+    line-height: 1.7;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Dark Theme for README Preview */
+.tab-content.preview-content {
+    background: var(--dark-bg);
+    color: var(--text-primary);
+}
+
+.tab-content.preview-content h1,
+.tab-content.preview-content h2,
+.tab-content.preview-content h3,
+.tab-content.preview-content h4,
+.tab-content.preview-content h5,
+.tab-content.preview-content h6 {
+    color: white;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    background: var(--gradient-tech);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+}
+
+.tab-content.preview-content h1 {
+    font-size: 2.5rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+}
+
+.tab-content.preview-content h2 {
+    font-size: 2rem;
+    border-bottom: 1px solid rgba(0, 217, 255, 0.3);
+    padding-bottom: 0.3rem;
+}
+
+.tab-content.preview-content h3 {
+    font-size: 1.5rem;
+}
+
+.tab-content.preview-content p {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+}
+
+.tab-content.preview-content strong {
+    color: white;
+    font-weight: 700;
+}
+
+.tab-content.preview-content em {
+    color: var(--primary-color);
+    font-style: italic;
+}
+
+.tab-content.preview-content code {
+    background: rgba(0, 217, 255, 0.1);
+    color: var(--primary-color);
+    padding: 0.2rem 0.4rem;
+    border-radius: var(--radius);
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.9em;
+    border: 1px solid rgba(0, 217, 255, 0.2);
+}
+
+.tab-content.preview-content pre {
+    background: var(--dark-bg-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    position: relative;
+}
+
+.tab-content.preview-content pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.tab-content.preview-content ul,
+.tab-content.preview-content ol {
+    margin: 1rem 0;
+    padding-left: 2rem;
+    color: var(--text-secondary);
+}
+
+.tab-content.preview-content li {
+    margin-bottom: 0.5rem;
+}
+
+.tab-content.preview-content blockquote {
+    border-left: 4px solid var(--primary-color);
+    background: rgba(0, 217, 255, 0.05);
+    margin: 1rem 0;
+    padding: 1rem 1.5rem;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.tab-content.preview-content a {
+    color: var(--primary-color);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: all var(--transition);
+}
+
+.tab-content.preview-content a:hover {
+    color: white;
+    border-bottom-color: var(--primary-color);
+}
+
+.tab-content.preview-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    background: var(--dark-bg-secondary);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-content.preview-content th,
+.tab-content.preview-content td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-content.preview-content th {
+    background: var(--gradient-tech);
+    color: white;
+    font-weight: 700;
+}
+
+.tab-content.preview-content tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Markdown Source Content */
+.tab-content.source-content {
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', 'Roboto Mono', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    background: var(--dark-bg-secondary);
+    color: #e2e8f0;
+}
+
+/* Custom Scrollbar for Tab Content */
+.tab-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+    background: var(--dark-bg-secondary);
+    border-radius: 4px;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+.tab-content::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-hover);
 }
 
 /* Enhanced Finalize Section */

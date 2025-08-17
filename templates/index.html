@@ -164,12 +164,30 @@
                         <button type="submit" id="generate-btn" class="btn btn-primary">
                             <i class="fas fa-magic"></i> Generate README
                         </button>
-                        
-                        <!-- Temporary test button to show regeneration section -->
-                        <button type="button" id="test-regeneration-btn" class="btn btn-secondary" style="margin-top: 1rem;">
-                            <i class="fas fa-eye"></i> Test Regeneration Section
-                        </button>
                     </form>
+                    
+                    <div class="form-info">
+                        <div class="info-item">
+                            <i class="fas fa-lightbulb"></i>
+                            <span><strong>Pro Tip:</strong> After generating your README, you'll see an AI-powered enhancement section to regenerate any specific part!</span>
+                        </div>
+                        <div class="info-item" style="margin-top: 0.5rem;">
+                            <i class="fas fa-flask"></i>
+                            <span><strong>Want to test regeneration features?</strong> 
+                                <button type="button" onclick="testRegeneration()" class="btn-link" style="color: var(--primary-color); background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 0.9rem;">
+                                    Click here to preview
+                                </button>
+                            </span>
+                        </div>
+                        <div class="info-item" style="margin-top: 0.5rem;">
+                            <i class="fas fa-wrench"></i>
+                            <span><strong>Fix regeneration section visibility:</strong> 
+                                <button type="button" onclick="forceShowRegenerationSection()" class="btn-link" style="color: #e44d26; background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 0.9rem; font-weight: bold;">
+                                    Force show section
+                                </button>
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
 

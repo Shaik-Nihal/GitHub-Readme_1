@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Document loaded - Initializing README Generator...');
+    
     // DOM Element References
     const form = document.getElementById('readme-form');
     const generateBtn = document.getElementById('generate-btn');
@@ -19,7 +21,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyBtn = document.getElementById('copy-btn');
     const downloadBtn = document.getElementById('download-btn');
     const readmeHeaderActions = document.getElementById('readme-header-actions');
-    const testRegenerationBtn = document.getElementById('test-regeneration-btn');
+    
+    // Debug logging of key elements
+    console.log('📊 DOM Element status:');
+    console.log(' - Enhancement section:', enhancementSection ? 'Found ✅' : 'Not found ❌');
+    console.log(' - Section cards:', document.querySelectorAll('.section-card').length);
+    console.log(' - Copy button:', copyBtn ? 'Found ✅' : 'Not found ❌');
+    console.log(' - Download button:', downloadBtn ? 'Found ✅' : 'Not found ❌');
 
     let analysisData = null;
     let finalReadmeContent = '';
@@ -149,39 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderReadme(finalReadmeContent);
             updateProgress(2);
             
-            // DEBUG: Show regeneration section with detailed logging
-            console.log('README generation completed, showing enhancement section...');
-            console.log('Enhancement section element:', enhancementSection);
-            console.log('Enhancement section exists:', enhancementSection !== null);
-            
-            if (enhancementSection) {
-                console.log('Before: classList =', enhancementSection.classList.toString());
-                enhancementSection.classList.remove('hidden');
-                console.log('After: classList =', enhancementSection.classList.toString());
-                
-                // Force visibility with multiple methods
-                enhancementSection.style.display = 'block';
-                enhancementSection.style.visibility = 'visible';
-                enhancementSection.style.opacity = '1';
-                
-                console.log('Enhancement section should now be visible');
-                console.log('Computed style display:', window.getComputedStyle(enhancementSection).display);
-                console.log('Computed style visibility:', window.getComputedStyle(enhancementSection).visibility);
-                
-                // Scroll to section after a short delay
-                setTimeout(() => {
-                    enhancementSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 500);
-            } else {
-                console.error('Enhancement section element not found!');
-            }
-            
-            if (readmeHeaderActions) {
-                readmeHeaderActions.classList.remove('hidden');
-                console.log('Header actions shown');
-            } else {
-                console.error('Header actions element not found!');
-            }
+            console.log('✅ README generation completed successfully');
 
         } catch (error) {
             console.error('Error during generation process:', error);
@@ -235,83 +211,192 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderReadme(markdown) {
-        // Convert basic markdown to HTML for display
+        // Store the final README content globally
+        finalReadmeContent = markdown;
+        console.log('📄 README content stored:', finalReadmeContent ? 'Success' : 'Failed');
+        
+        // Convert basic markdown to HTML for preview
         let html = markdown
+            .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
             .replace(/^### (.*$)/gim, '<h3>$1</h3>')
             .replace(/^## (.*$)/gim, '<h2>$1</h2>')
             .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-            .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-            .replace(/\*(.*)\*/gim, '<em>$1</em>')
-            .replace(/```([\\s\\S]*?)```/gim, '<pre><code>$1</code></pre>')
-            .replace(/`([^`]*)`/gim, '<code>$1</code>')
-            .replace(/\\n/gim, '<br>');
+            .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+            .replace(/```([\s\S]*?)```/gim, '<pre><code>$1</code></pre>')
+            .replace(/`([^`]*?)`/gim, '<code>$1</code>')
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank">$1</a>')
+            .replace(/^\* (.+$)/gim, '<li>$1</li>')
+            .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+            .replace(/^\d+\. (.+$)/gim, '<li>$1</li>')
+            .replace(/^> (.+$)/gim, '<blockquote>$1</blockquote>')
+            .replace(/\n/gim, '<br>');
 
-        readmeOutput.innerHTML = `
-            <div class="readme-preview">
-                <div class="readme-toolbar">
-                    <span class="readme-title"><i class="fab fa-markdown"></i> README.md</span>
-                    <div class="readme-actions">
-                        <button onclick="editSection(event)" class="edit-btn">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                    </div>
-                </div>
-                <div class="readme-content">${html}</div>
-            </div>
-            <div class="readme-raw">
-                <h4>Raw Markdown:</h4>
-                <pre><code>${markdown}</code></pre>
-            </div>
-        `;
+        // Clean up nested lists
+        html = html.replace(/<\/li><br><li>/gim, '</li><li>');
+        html = html.replace(/<ul><br>/gim, '<ul>');
+        html = html.replace(/<br><\/ul>/gim, '</ul>');
+
+        // Populate the markdown source tab
+        const readmeOutput = document.getElementById('readme-output');
+        if (readmeOutput) {
+            readmeOutput.textContent = markdown;
+            console.log('✅ Markdown source populated');
+        }
+
+        // Populate the HTML preview tab
+        const readmePreview = document.getElementById('readme-preview');
+        if (readmePreview) {
+            readmePreview.innerHTML = html;
+            console.log('✅ HTML preview populated');
+        }
+
+        // Show the copy and download buttons
+        if (readmeHeaderActions) {
+            readmeHeaderActions.classList.remove('hidden');
+            console.log('✅ Copy/Download buttons shown');
+        }
+
+        // Initialize tab functionality
+        initializeTabs();
+        
+        // Show the enhancement section with more robust handling
+        console.log('🔍 Attempting to show enhancement section...');
+        const enhancementSection = document.getElementById('enhancement-section');
+        
+        if (enhancementSection) {
+            console.log('Enhancement section element found, showing it...');
+            enhancementSection.classList.remove('hidden');
+            enhancementSection.style.display = 'block';
+            enhancementSection.style.visibility = 'visible';
+            enhancementSection.style.opacity = '1';
+            
+            // Initialize regeneration functionality
+            initializeSectionRegeneration();
+            
+            // Scroll to section after a delay
+            setTimeout(() => {
+                enhancementSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                console.log('✅ Scrolled to enhancement section');
+            }, 1000);
+            
+            console.log('✅ Enhancement section shown and initialized');
+        } else {
+            console.error('❌ Enhancement section element not found in renderReadme');
+            // Try to add a fallback notification
+            if (typeof showToast === 'function') {
+                showToast('Error: Enhancement section not found. Try using the "Force show section" button.', 'error');
+            }
+        }
+    }
+
+    // Function to show the enhancement section
+    function showEnhancementSection() {
+        console.log('🎯 Showing enhancement section...');
+        
+        if (enhancementSection) {
+            enhancementSection.classList.remove('hidden');
+            enhancementSection.style.display = 'block';
+            enhancementSection.style.visibility = 'visible';
+            enhancementSection.style.opacity = '1';
+            
+            // Initialize regeneration functionality
+            initializeSectionRegeneration();
+            
+            // Scroll to section after a delay
+            setTimeout(() => {
+                enhancementSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 1000);
+            
+            console.log('✅ Enhancement section shown and initialized');
+            return true;
+        } else {
+            console.error('❌ Enhancement section element not found');
+            return false;
+        }
+    }
+
+    // Initialize tab switching functionality
+    function initializeTabs() {
+        const tabs = document.querySelectorAll('.readme-tabs .tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and contents
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+
+                // Add active class to clicked tab
+                tab.classList.add('active');
+
+                // Show corresponding content
+                const tabType = tab.getAttribute('data-tab');
+                const targetContent = document.getElementById(`readme-${tabType}`);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                }
+            });
+        });
     }
 
     // Function to ensure regeneration section is properly shown
-    function forceShowRegenerationSection() {
-        console.log('Force showing regeneration section...');
+    // Making it globally accessible
+    window.forceShowRegenerationSection = function() {
+        console.log('🔄 Force showing regeneration section...');
         const section = document.getElementById('enhancement-section');
+        
         if (section) {
+            // Remove hidden class and force display
             section.classList.remove('hidden');
             section.style.display = 'block';
             section.style.visibility = 'visible';
             section.style.opacity = '1';
             
-            // Also initialize the regeneration functionality
+            // Initialize the regeneration functionality
             initializeSectionRegeneration();
             
-            console.log('Regeneration section forced to show');
+            // Also show toast for user feedback
+            if (typeof showToast === 'function') {
+                showToast('Regeneration section visibility forced!', 'success');
+            }
+            
+            // Scroll to the section
+            setTimeout(() => {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                console.log('Scrolled to enhancement section');
+            }, 500);
+            
+            console.log('✅ Force show completed successfully');
             return true;
         }
-        console.error('Could not find regeneration section');
+        
+        console.error('Could not find regeneration section element');
+        alert('Error: Could not find regeneration section element!');
         return false;
     }
 
-    // Test regeneration section button - Enhanced version
-    if (testRegenerationBtn) {
-        testRegenerationBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('Test button clicked');
-            
-            const success = forceShowRegenerationSection();
-            if (success) {
-                testRegenerationBtn.style.display = 'none';
-                alert('Regeneration section is now visible! Check below the form.');
-            } else {
-                alert('Could not show regeneration section - check console for errors');
-            }
-        });
-    } else {
-        console.error('Test regeneration button not found!');
-    }
-
+    // Section regeneration functionality
+    
     // Copy button functionality
     if (copyBtn) {
         copyBtn.addEventListener('click', async () => {
+            console.log('📋 Copy button clicked');
+            
+            if (!finalReadmeContent) {
+                console.error('No README content to copy');
+                showToast('No README content available to copy', 'error');
+                return;
+            }
+            
             try {
                 await navigator.clipboard.writeText(finalReadmeContent);
-                copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                copyBtn.innerHTML = '<i class="fas fa-check"></i><span>Copied!</span>';
+                showToast('README copied to clipboard!', 'success');
                 setTimeout(() => {
-                    copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Final README';
+                    copyBtn.innerHTML = '<i class="fas fa-copy"></i><span>Copy</span>';
                 }, 2000);
+                console.log('✅ README copied to clipboard');
             } catch (err) {
                 console.error('Failed to copy text: ', err);
                 // Fallback for older browsers
@@ -322,47 +407,183 @@ document.addEventListener('DOMContentLoaded', () => {
                 textArea.select();
                 try {
                     document.execCommand('copy');
-                    copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i><span>Copied!</span>';
+                    showToast('README copied to clipboard!', 'success');
                     setTimeout(() => {
-                        copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Final README';
+                        copyBtn.innerHTML = '<i class="fas fa-copy"></i><span>Copy</span>';
                     }, 2000);
+                    console.log('✅ README copied using fallback method');
                 } catch (err) {
-                    alert('Failed to copy text');
+                    console.error('Fallback copy failed:', err);
+                    showToast('Failed to copy README', 'error');
                 }
                 document.body.removeChild(textArea);
             }
         });
+        console.log('✅ Copy button event listener attached');
+    } else {
+        console.error('❌ Copy button not found');
     }
 
     // Download button functionality
     if (downloadBtn) {
         downloadBtn.addEventListener('click', () => {
-            const blob = new Blob([finalReadmeContent], { type: 'text/markdown' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'README.md';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            console.log('💾 Download button clicked');
+            
+            if (!finalReadmeContent) {
+                console.error('No README content to download');
+                showToast('No README content available to download', 'error');
+                return;
+            }
+            
+            try {
+                const blob = new Blob([finalReadmeContent], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'README.md';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showToast('README.md downloaded successfully!', 'success');
+                console.log('✅ README downloaded');
+            } catch (err) {
+                console.error('Failed to download README:', err);
+                showToast('Failed to download README', 'error');
+            }
         });
+        console.log('✅ Download button event listener attached');
+    } else {
+        console.error('❌ Download button not found');
     }
 
     // Section regeneration functionality
     function initializeSectionRegeneration() {
+        console.log('🔧 Initializing section regeneration...');
         const sectionCards = document.querySelectorAll('.section-card');
+        console.log(`Found ${sectionCards.length} section cards`);
         
-        sectionCards.forEach(card => {
+        sectionCards.forEach((card, index) => {
+            const sectionType = card.getAttribute('data-section');
             const regenerateBtn = card.querySelector('.regenerate-btn');
+            
+            console.log(`Card ${index + 1}: ${sectionType}, Button:`, regenerateBtn);
+            
             if (regenerateBtn) {
-                regenerateBtn.addEventListener('click', async (e) => {
+                // Remove any existing event listeners to prevent duplicates
+                regenerateBtn.removeEventListener('click', regenerateBtn._regenerationHandler);
+                
+                // Create a named function reference for the handler
+                regenerateBtn._regenerationHandler = async (e) => {
+                    console.log(`🔄 Regenerate clicked for: ${sectionType}`);
                     e.stopPropagation();
                     await regenerateSection(card);
-                });
+                };
+                
+                regenerateBtn.addEventListener('click', regenerateBtn._regenerationHandler);
+                console.log(`✅ Event listener added for ${sectionType}`);
+                
+                // Add visual feedback
+                regenerateBtn.style.cursor = 'pointer';
+                regenerateBtn.title = `Regenerate ${sectionType} section`;
+            } else {
+                console.warn(`❌ No regenerate button found for ${sectionType}`);
             }
         });
+        
+        console.log('✅ Section regeneration initialization complete');
     }
+
+    // Debug function to test regeneration (for development)
+    window.testRegeneration = function() {
+        console.log('🧪 testRegeneration function called');
+        
+        // Set some dummy content for testing
+        if (!finalReadmeContent) {
+            finalReadmeContent = `# Test README
+
+## Description
+This is a test README generated for testing the regeneration functionality.
+
+## Features
+- Feature 1
+- Feature 2
+- Feature 3
+
+## Installation
+\`\`\`bash
+npm install
+\`\`\`
+
+## Usage
+\`\`\`javascript
+console.log('Hello World');
+\`\`\`
+
+## Contributing
+Please contribute to this project.
+
+## License
+MIT License`;
+            console.log('📝 Test README content set');
+        }
+        
+        const enhancementSection = document.getElementById('enhancement-section');
+        console.log('Enhancement section found:', enhancementSection);
+        
+        if (enhancementSection) {
+            console.log('Before - Classes:', enhancementSection.classList.toString());
+            console.log('Before - Display:', window.getComputedStyle(enhancementSection).display);
+            
+            enhancementSection.classList.remove('hidden');
+            enhancementSection.style.display = 'block';
+            enhancementSection.style.visibility = 'visible';
+            enhancementSection.style.opacity = '1';
+            
+            console.log('After - Classes:', enhancementSection.classList.toString());
+            console.log('After - Display:', window.getComputedStyle(enhancementSection).display);
+            
+            // Initialize regeneration
+            initializeSectionRegeneration();
+            
+            // Show copy/download buttons
+            if (readmeHeaderActions) {
+                readmeHeaderActions.classList.remove('hidden');
+                console.log('✅ Copy/Download buttons shown');
+            }
+            
+            // Show toast
+            if (typeof showToast === 'function') {
+                showToast('Test mode activated! Regeneration section and buttons are ready.', 'success');
+            } else {
+                console.warn('showToast function not available');
+                alert('Test mode activated! Regeneration section and buttons are ready.');
+            }
+            
+            // Also render dummy content in the readme output for better testing
+            const readmeOutput = document.getElementById('readme-output');
+            if (readmeOutput) {
+                readmeOutput.textContent = finalReadmeContent;
+                console.log('✅ Test content populated in readme output');
+            }
+            
+            // Scroll to the section
+            setTimeout(() => {
+                enhancementSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                console.log('Scrolled to enhancement section');
+            }, 500);
+            
+            console.log('✅ Test regeneration setup complete');
+            console.log('🎯 Try clicking regenerate buttons or copy/download buttons!');
+            return true;
+        } else {
+            console.error('❌ Enhancement section not found');
+            alert('Error: Could not find regeneration section');
+            return false;
+        }
+    };
 
     async function regenerateSection(card) {
         const sectionType = card.getAttribute('data-section');
@@ -370,6 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const progressIndicator = card.querySelector('.progress-indicator');
         
         if (!sectionType) {
+            console.error('No section type found for card:', card);
             showToast('Error: Section type not found', 'error');
             return;
         }
@@ -386,6 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Extract current section content from the README
             let currentSectionContent = '';
+            
             if (finalReadmeContent) {
                 // Try to extract the current section content
                 const sectionRegex = new RegExp(`##\\s*${sectionType}[\\s\\S]*?(?=##|$)`, 'i');
@@ -395,20 +618,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentSectionContent = `## ${sectionType}\n\nPlease provide content for the ${sectionType} section.`;
             }
 
-            console.log(`Regenerating ${sectionType} section with content:`, currentSectionContent);
+            console.log(`Regenerating ${sectionType} section...`);
+            
+            // Get AI provider and model selections
+            const selectedProvider = aiProviderSelect?.value || 'openrouter';
+            const selectedModel = aiModelSelect?.value || 'meta-llama/llama-3.2-3b-instruct:free';
+
+            const requestBody = {
+                section_heading: sectionType,
+                section_content: currentSectionContent,
+                ai_provider: selectedProvider,
+                ai_model: selectedModel,
+                analysis: analysisData // Include analysis data if available
+            };
 
             const response = await fetch('/api/regenerate_section', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    section_heading: sectionType,
-                    section_content: currentSectionContent,
-                    ai_provider: aiProviderSelect?.value || 'openrouter',
-                    ai_model: aiModelSelect?.value || 'meta-llama/llama-3.2-3b-instruct:free',
-                    analysis: analysisData // Include analysis data if available
-                })
+                body: JSON.stringify(requestBody)
             });
 
             const result = await response.json();
