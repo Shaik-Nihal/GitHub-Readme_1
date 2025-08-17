@@ -2682,14 +2682,10 @@ button i {
 .tab-content.preview-content h4,
 .tab-content.preview-content h5,
 .tab-content.preview-content h6 {
-    color: white;
+    color: var(--text-primary);
     margin-top: 1.5rem;
     margin-bottom: 1rem;
     font-weight: 700;
-    background: var(--gradient-tech);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
     position: relative;
 }
 
